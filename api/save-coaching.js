@@ -1,20 +1,55 @@
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
+// ── 블록 헬퍼 ──────────────────────────────
 function heading2(text) {
-  return { object: 'block', type: 'heading_2', heading_2: { rich_text: [{ type: 'text', text: { content: text } }] } };
+  return { object:'block', type:'heading_2', heading_2:{ rich_text:[{ type:'text', text:{ content:text } }] } };
 }
 function heading3(text) {
-  return { object: 'block', type: 'heading_3', heading_3: { rich_text: [{ type: 'text', text: { content: text } }] } };
+  return { object:'block', type:'heading_3', heading_3:{ rich_text:[{ type:'text', text:{ content:text } }] } };
 }
 function bullet(text) {
-  return { object: 'block', type: 'bulleted_list_item', bulleted_list_item: { rich_text: [{ type: 'text', text: { content: text } }] } };
+  return { object:'block', type:'bulleted_list_item', bulleted_list_item:{ rich_text:[{ type:'text', text:{ content:text } }] } };
+}
+function bulletLink(text, url) {
+  return {
+    object:'block', type:'bulleted_list_item',
+    bulleted_list_item:{ rich_text:[
+      { type:'text', text:{ content:text + ' → ' } },
+      { type:'text', text:{ content:'▶ 영상 바로가기', link:{ url } }, annotations:{ color:'blue', underline:true } }
+    ]}
+  };
 }
 function paragraph(text) {
-  return { object: 'block', type: 'paragraph', paragraph: { rich_text: [{ type: 'text', text: { content: text } }] } };
+  return { object:'block', type:'paragraph', paragraph:{ rich_text:[{ type:'text', text:{ content:text } }] } };
+}
+function callout(text, emoji) {
+  return {
+    object:'block', type:'callout',
+    callout:{ rich_text:[{ type:'text', text:{ content:text } }], icon:{ type:'emoji', emoji: emoji||'📌' } }
+  };
 }
 function divider() {
-  return { object: 'block', type: 'divider', divider: {} };
+  return { object:'block', type:'divider', divider:{} };
+}
+function toggle(title, children) {
+  return {
+    object:'block', type:'toggle',
+    toggle:{ rich_text:[{ type:'text', text:{ content:title } }], children }
+  };
+}
+function bookmark(url, caption) {
+  return {
+    object:'block', type:'bookmark',
+    bookmark:{ url, caption: caption ? [{ type:'text', text:{ content:caption } }] : [] }
+  };
+}
+
+// ── 청크 분할 (Notion API 100개 제한) ──────
+function chunkArray(arr, size) {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+  return chunks;
 }
 
 module.exports = async function handler(req, res) {
@@ -31,91 +66,125 @@ module.exports = async function handler(req, res) {
     const pageTitle = `${dateStr} 코칭 플랜`;
 
     const { calc, missions, workout, mealPlan, memberInfo } = result;
+    const allDaily = missions._allDaily || [];
+    const dayLabels = ['월','화','수','목','금','토','일'];
 
-    // 블록 구성 (100개 제한 주의 — 두 번에 나눠서 저장)
-    const blocks1 = [
+    // ── 1. 칼로리 & 탄단지 ──────────────────
+    const calcBlocks = [
+      callout(`🎯 목표 칼로리: ${calc.targetCal} kcal  |  회원 유형: ${calc.userType}  |  Safety Flag: ${calc.safetyFlag ? 'ON ⚠️' : 'OFF ✅'}`, '📊'),
       heading2('📊 칼로리 & 탄단지'),
-      bullet(`BMR: ${calc.bmr} kcal`),
-      bullet(`TDEE: ${calc.tdee} kcal`),
-      bullet(`목표 칼로리: ${calc.targetCal} kcal`),
-      bullet(`단백질: ${calc.protein}g`),
-      bullet(`탄수화물: ${calc.carb}g`),
-      bullet(`지방: ${calc.fat}g`),
-      bullet(`회원 유형: ${calc.userType}`),
+      bullet(`기초대사량 (BMR): ${calc.bmr} kcal`),
+      bullet(`활동대사량 (TDEE): ${calc.tdee} kcal`),
+      bullet(`목표 섭취 칼로리: ${calc.targetCal} kcal`),
+      bullet(`단백질: ${calc.protein}g  |  탄수화물: ${calc.carb}g  |  지방: ${calc.fat}g`),
+      bullet(`활동계수: ${calc.totalFactor}  |  식습관 위험: ${calc.dietRisk}/8  |  회복 위험: ${calc.recoveryRisk}/6  |  호르몬 위험: ${calc.hormoneRisk}/4`),
       divider(),
-
-      heading2('📋 4주 미션표'),
-      heading3('1주차 — ' + (missions.week1.theme || '')),
-      bullet('주간미션 1: ' + missions.week1.mission1),
-      bullet('주간미션 2: ' + missions.week1.mission2),
-      bullet('데일리 고정: ' + missions.week1.dailyFix),
-      heading3('2주차 — ' + (missions.week2.theme || '')),
-      bullet('주간미션 1: ' + missions.week2.mission1),
-      bullet('주간미션 2: ' + missions.week2.mission2),
-      bullet('데일리 고정: ' + missions.week2.dailyFix),
-      heading3('3주차 — ' + (missions.week3.theme || '')),
-      bullet('주간미션 1: ' + missions.week3.mission1),
-      bullet('주간미션 2: ' + missions.week3.mission2),
-      bullet('데일리 고정: ' + missions.week3.dailyFix),
-      heading3('4주차 — ' + (missions.week4.theme || '')),
-      bullet('주간미션 1: ' + missions.week4.mission1),
-      bullet('주간미션 2: ' + missions.week4.mission2),
-      bullet('데일리 고정: ' + missions.week4.dailyFix),
-      divider(),
-
-      heading2('🥗 7일 식단 (반복)'),
-      paragraph(`목표 칼로리 ${calc.targetCal}kcal 기준`),
     ];
 
-    // 식단 블록 추가
-    const mealBlocks = [];
-    (mealPlan || []).forEach((day, i) => {
-      mealBlocks.push(heading3(`Day ${i+1}`));
-      (day.meals || []).forEach(m => {
-        mealBlocks.push(bullet(`${m.type}: ${m.foods} (${m.kcal}kcal)`));
+    // ── 2. 4주 미션표 ────────────────────────
+    const weekKeys = ['week1','week2','week3','week4'];
+    const weekLabels = ['1주차','2주차','3주차','4주차'];
+
+    const missionBlocks = [heading2('📋 4주 미션표')];
+
+    weekKeys.forEach((wk, wi) => {
+      const m = missions[wk];
+      const weekDailyStart = wi * 7;
+      const weekDays = allDaily.slice(weekDailyStart, weekDailyStart + 7);
+
+      // 주간 미션 + 데일리 고정
+      const weekChildren = [
+        bullet(`🏆 주간미션 1: ${m.weekly1 || ''}`),
+        bullet(`🏆 주간미션 2: ${m.weekly2 || ''}`),
+        bullet(`✅ 데일리 고정: ${m.dailyFixed || ''}`),
+        paragraph(''),
+        paragraph('📅 데일리 미션 (날마다 다름):'),
+      ];
+
+      // 28일 데일리 미션
+      weekDays.forEach((dm, di) => {
+        weekChildren.push(bullet(`${dayLabels[di]} · Day${weekDailyStart + di + 1}: ${dm}`));
       });
-    });
-    mealBlocks.push(divider());
 
-    const blocks2 = [
-      heading2('🏋️ 28일 운동 배치'),
-      bullet(`운동 레벨: ${workout.level}`),
-      heading3('1주차'),
-      bullet(`월: ${workout.week1.mon}`), bullet(`화: ${workout.week1.tue}`),
-      bullet(`수: ${workout.week1.wed}`), bullet(`목: ${workout.week1.thu}`),
-      bullet(`금: ${workout.week1.fri}`), bullet(`토: ${workout.week1.sat}`),
-      bullet(`일: ${workout.week1.sun}`),
-      heading3('2주차'),
-      bullet(`월: ${workout.week2.mon}`), bullet(`화: ${workout.week2.tue}`),
-      bullet(`수: ${workout.week2.wed}`), bullet(`목: ${workout.week2.thu}`),
-      bullet(`금: ${workout.week2.fri}`), bullet(`토: ${workout.week2.sat}`),
-      bullet(`일: ${workout.week2.sun}`),
-      heading3('3주차'),
-      bullet(`월: ${workout.week3.mon}`), bullet(`화: ${workout.week3.tue}`),
-      bullet(`수: ${workout.week3.wed}`), bullet(`목: ${workout.week3.thu}`),
-      bullet(`금: ${workout.week3.fri}`), bullet(`토: ${workout.week3.sat}`),
-      bullet(`일: ${workout.week3.sun}`),
-      heading3('4주차'),
-      bullet(`월: ${workout.week4.mon}`), bullet(`화: ${workout.week4.tue}`),
-      bullet(`수: ${workout.week4.wed}`), bullet(`목: ${workout.week4.thu}`),
-      bullet(`금: ${workout.week4.fri}`), bullet(`토: ${workout.week4.sat}`),
-      bullet(`일: ${workout.week4.sun}`),
+      missionBlocks.push(
+        toggle(`${weekLabels[wi]} — ${m.theme || ''}`, weekChildren)
+      );
+    });
+    missionBlocks.push(divider());
+
+    // ── 3. 7일 식단 ─────────────────────────
+    const mealBlocks = [
+      heading2('🥗 7일 식단'),
+      callout(`목표 칼로리 ${calc.targetCal}kcal 기준 · 1-2주차, 3-4주차 반복`, '🍽'),
     ];
 
-    // 코칭 페이지 생성
+    (mealPlan || []).forEach((day, i) => {
+      const dayTotal = day.total || day.meals.reduce((s, m) => s + m.kcal, 0);
+      const mealChildren = day.meals.map(m =>
+        bullet(`${m.type}: ${m.foods}  (${m.kcal}kcal)`)
+      );
+      mealBlocks.push(toggle(`Day ${i+1} (${day.day}) — ${dayTotal}kcal`, mealChildren));
+    });
+
+    mealBlocks.push(
+      paragraph(''),
+      callout('🟡 자유식 가이드 (주 1회, 1끼)\n1. 단백질 메뉴 먼저 — 고기·생선·두부 중 하나 필수\n2. 음료는 물 또는 제로음료\n3. 탄수화물 + 지방 과다 조합 피하기\n4. 다음 끼니 굶지 않기 — 정상식 복귀\n5. 추천: 샤브샤브, 초밥, 삼겹살+밥 반공기', '🟡'),
+      divider(),
+    );
+
+    // ── 4. 28일 운동 배치 (영상 링크 포함) ──
+    const workoutBlocks = [
+      heading2('🏋️ 28일 운동 배치'),
+      callout(`운동 레벨: ${workout.level}  |  주 5회 운동 + 2회 스트레칭/휴식`, '💪'),
+    ];
+
+    const workoutWeekKeys = ['week1','week2','week3','week4'];
+    const workoutWeekLabels = ['1주차','2주차','3주차','4주차'];
+
+    workoutWeekKeys.forEach((wk, wi) => {
+      const w = workout[wk];
+      if (!w) return;
+
+      const wChildren = dayLabels.map((dl, di) => {
+        const dk = ['mon','tue','wed','thu','fri','sat','sun'][di];
+        const entry = w[dk] || '휴식';
+
+        // entry 형식: "전신 타바타 31분 (D1)" — URL 파싱
+        const urlMatch = entry.match(/https?:\/\/[^\s)]+/);
+        if (urlMatch) {
+          const label = entry.replace(urlMatch[0], '').replace(/→\s*/, '').trim();
+          return bulletLink(`${dl}: ${label}`, urlMatch[0]);
+        }
+        return bullet(`${dl}: ${entry}`);
+      });
+
+      workoutBlocks.push(toggle(`${workoutWeekLabels[wi]}`, wChildren));
+    });
+
+    // ── 페이지 생성 ──────────────────────────
     const page = await notion.pages.create({
       parent: { page_id: memberId },
-      properties: { title: { title: [{ type: 'text', text: { content: pageTitle } }] } },
-      children: blocks1.slice(0, 100)
+      properties: { title: { title: [{ type:'text', text:{ content: pageTitle } }] } },
+      children: calcBlocks,
     });
 
-    // 식단 블록 추가 (100개 제한으로 나눠서)
-    if (mealBlocks.length > 0) {
-      await notion.blocks.children.append({ block_id: page.id, children: mealBlocks.slice(0, 50) });
+    // 미션 블록 (토글 포함 — 순차 append)
+    for (const chunk of chunkArray(missionBlocks, 50)) {
+      await notion.blocks.children.append({ block_id: page.id, children: chunk });
     }
-    await notion.blocks.children.append({ block_id: page.id, children: blocks2 });
 
-    return res.status(200).json({ success: true, pageId: page.id });
+    // 식단 블록
+    for (const chunk of chunkArray(mealBlocks, 50)) {
+      await notion.blocks.children.append({ block_id: page.id, children: chunk });
+    }
+
+    // 운동 블록
+    for (const chunk of chunkArray(workoutBlocks, 50)) {
+      await notion.blocks.children.append({ block_id: page.id, children: chunk });
+    }
+
+    return res.status(200).json({ success: true, pageId: page.id, pageUrl: `https://notion.so/${page.id.replace(/-/g,'')}` });
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err.message });
