@@ -250,113 +250,68 @@
 // ================================
 // 영상 URL 맵 (D코드 → 실제 링크)
 // ================================
+// ──────────────────────────────────────────
+// 운동 영상 DB
+// ──────────────────────────────────────────
 const VIDEO_MAP = {
-  // 타바타 (고강도 전신)
-  D1:  { url: "https://youtu.be/BlUyoiw2qbM?si=P4Oe207xt4S8pEpW", label: "전신고강도 타바타", duration: 31, category: "tabata" },
-  D8:  { url: "https://youtu.be/DUKdddGmJb4?si=d55BFcfbW7_jiFfa", label: "전신고강도 타바타", duration: 30, category: "tabata" },
-  D15: { url: "https://youtu.be/S8Mi9hw_Z3I?si=havmnHIG23fhcQju", label: "전신고강도 타바타", duration: 30, category: "tabata" },
-  D22: { url: "https://youtu.be/6HA-ZWI7mRE?si=rsSWDvCyh4At4d2x", label: "전신고강도 타바타", duration: 30, category: "tabata" },
-
-  // 코어
-  D2:  { url: "https://youtu.be/N9ocAgrW5Kg?si=S-1DGYjsLI0qqfUk", label: "복근/코어", duration: 15, category: "core" },
-  D9:  { url: "https://youtu.be/R9yjgccO3SA?si=Iia4LAJd98-Q_L9p", label: "복근/코어", duration: 17, category: "core" },
-  D16: { url: "https://youtu.be/aS3vfElrQks?si=BXJwPpOCCVVQSPpa", label: "복근/코어", duration: 10, category: "core" },
-  D23: { url: "https://youtu.be/aB0mF0WMsig?si=kvdOdQgdnqtnPluk", label: "복근/코어", duration: 16, category: "core" },
-
-  // 힙/하체
-  D3:  { url: "https://youtu.be/Zdz4MUI1vq4?si=dsQYI6ifFFj7H3e-", label: "힙/하체", duration: 19, category: "lower" },
-  D10: { url: "https://youtu.be/SP4UNIo0aNI?si=zDdNDrcslYkkOsiq", label: "힙/하체", duration: 20, category: "lower" },
-  D17: { url: "https://youtu.be/_MYj2Y-fO5c?si=CWuzbVUS1Ch4Ggzz", label: "힙/하체", duration: 14, category: "lower" },
-  D24: { url: "https://youtu.be/7WXQHqtJf_U?si=-luGzP8-tSsBNQfT", label: "힙/하체", duration: 14, category: "lower" },
-
-  // 근력서킷
-  D5:  { url: "https://youtu.be/hPsacN_Lays?si=bZTHxVPgF6JasFBN", label: "근력서킷", duration: 20, category: "circuit" },
-  D12: { url: "https://youtu.be/rsRSWM7M74Y?si=if7l1AsbE4McuqoP", label: "근력서킷", duration: 20, category: "circuit" },
-  D19: { url: "https://youtu.be/ome52BW_7AU?si=pVnkjOWUOfwZTYjW", label: "근력서킷", duration: 22, category: "circuit" },
-  D26: { url: "https://youtu.be/hALCIrwS7ow?si=csnj069w4gQI1lEI", label: "근력서킷", duration: 20, category: "circuit" },
-
-  // 상체
-  D6:  { url: "https://youtu.be/XTIQXndqppY?si=KkBvkiqR-sEy6fjo", label: "상체", duration: 20, category: "upper" },
-  D13: { url: "https://youtu.be/hOmc2vA_CGg?si=jTIRvBozPWyLvyJ3", label: "상체", duration: 15, category: "upper" },
-  D20: { url: "https://youtu.be/8p8DQozrGjc?si=tH1Jw0E1xhPCKMaE", label: "상체", duration: 14, category: "upper" },
-  D27: { url: "https://youtu.be/AOr_opVFL-I?si=M-CM9MhnWfhaAFP4", label: "상체", duration: 15, category: "upper" },
-
-  // 스트레칭 (D4, D11, D18, D25) → buildVideoMap()에서 회원 특성 보고 채워짐
+  D1:  { label: '전신 타바타 31분', type: 'tabata',   url: 'https://youtu.be/BlUyoiw2qbM?si=P4Oe207xt4S8pEpW' },
+  D8:  { label: '전신 타바타 30분', type: 'tabata',   url: 'https://youtu.be/DUKdddGmJb4?si=d55BFcfbW7_jiFfa' },
+  D15: { label: '전신 타바타 30분', type: 'tabata',   url: 'https://youtu.be/S8Mi9hw_Z3I?si=havmnHIG23fhcQju' },
+  D22: { label: '전신 타바타 30분', type: 'tabata',   url: 'https://youtu.be/6HA-ZWI7mRE?si=rsSWDvCyh4At4d2x' },
+  D2:  { label: '코어 15분',        type: 'core',     url: 'https://youtu.be/N9ocAgrW5Kg?si=S-1DGYjsLI0qqfUk' },
+  D9:  { label: '코어 17분',        type: 'core',     url: 'https://youtu.be/R9yjgccO3SA?si=Iia4LAJd98-Q_L9p' },
+  D16: { label: '코어 10분',        type: 'core',     url: 'https://youtu.be/aS3vfElrQks?si=BXJwPpOCCVVQSPpa' },
+  D23: { label: '복근 16분',        type: 'core',     url: 'https://youtu.be/aB0mF0WMsig?si=kvdOdQgdnqtnPluk' },
+  D3:  { label: '힙/하체 19분',     type: 'lower',    url: 'https://youtu.be/Zdz4MUI1vq4?si=dsQYI6ifFFj7H3e-' },
+  D10: { label: '힙업 20분',        type: 'lower',    url: 'https://youtu.be/SP4UNIo0aNI?si=zDdNDrcslYkkOsiq' },
+  D17: { label: '하체 14분',        type: 'lower',    url: 'https://youtu.be/_MYj2Y-fO5c?si=CWuzbVUS1Ch4Ggzz' },
+  D24: { label: '하체 14분',        type: 'lower',    url: 'https://youtu.be/7WXQHqtJf_U?si=-luGzP8-tSsBNQfT' },
+  D5:  { label: '전신근력 20분',    type: 'strength', url: 'https://youtu.be/hPsacN_Lays?si=bZTHxVPgF6JasFBN' },
+  D12: { label: '전신근력 20분',    type: 'strength', url: 'https://youtu.be/rsRSWM7M74Y?si=if7l1AsbE4McuqoP' },
+  D19: { label: '근력서킷 22분',    type: 'strength', url: 'https://youtu.be/ome52BW_7AU?si=pVnkjOWUOfwZTYjW' },
+  D26: { label: '전신근력 20분',    type: 'strength', url: 'https://youtu.be/hALCIrwS7ow?si=csnj069w4gQI1lEI' },
+  D6:  { label: '상체 20분',        type: 'upper',    url: 'https://youtu.be/XTIQXndqppY?si=KkBvkiqR-sEy6fjo' },
+  D13: { label: '쇄골/상체 15분',   type: 'upper',    url: 'https://youtu.be/hOmc2vA_CGg?si=jTIRvBozPWyLvyJ3' },
+  D20: { label: '상체 14분',        type: 'upper',    url: 'https://youtu.be/8p8DQozrGjc?si=tH1Jw0E1xhPCKMaE' },
+  D27: { label: '팔뚝/상체 15분',   type: 'upper',    url: 'https://youtu.be/AOr_opVFL-I?si=M-CM9MhnWfhaAFP4' },
   D4:  null,
   D11: null,
   D18: null,
   D25: null,
 };
 
-// ================================
-// 스트레칭 선택 (회원 특성 기반)
-// ================================
 const STRETCHING_VIDEOS = {
-  daily:   { url: "https://youtu.be/4rQbhgzlyxU?si=fOtdFftmgee6p48y", label: "데일리 스트레칭", duration: 6 },
-  lower:   { url: "https://youtu.be/gE1HJqJE1lk?si=bPMUBPgwiI4y9MQq", label: "하체 스트레칭", duration: 10 },
-  upper:   { url: "https://youtu.be/e_yiQRkpDRY?si=ZHwkLNUzhnUle7YN", label: "등/어깨 스트레칭", duration: 7 },
-  running: { url: "https://youtu.be/2PulSaeQimY?si=Ehm0Chn1URfwI9N_", label: "러닝 스트레칭", duration: 8 },
+  daily:   { label: '데일리 스트레칭 6분',  type: 'stretch', url: 'https://youtu.be/4rQbhgzlyxU?si=fOtdFftmgee6p48y' },
+  lower:   { label: '하체 스트레칭 10분',   type: 'stretch', url: 'https://youtu.be/gE1HJqJE1lk?si=bPMUBPgwiI4y9MQq' },
+  upper:   { label: '등/어깨 스트레칭 7분', type: 'stretch', url: 'https://youtu.be/e_yiQRkpDRY?si=ZHwkLNUzhnUle7YN' },
+  running: { label: '러닝 스트레칭 8분',    type: 'stretch', url: 'https://youtu.be/2PulSaeQimY?si=Ehm0Chn1URfwI9N_' },
 };
 
-function resolveStretching(memberData) {
-  const activityType = memberData.운동종류 || "";
-  const job = memberData.직장형태 || "";
-  const sitHours = parseInt(memberData.앉아있는시간) || 0;
-  const steps = parseInt(memberData.걸음수) || 0;
-  const bmi = memberData._bmi || 0; // 계산된 BMI
+function resolveStretching(d) {
+  const activityType = d.운동종류 || '';
+  const job = d.직장형태 || '';
+  const steps = d.걸음수 || '';
+  const bmi = (d.키 && d.현재체중) ? d.현재체중 / ((d.키 / 100) ** 2) : 0;
 
-  if (activityType.includes("러닝") || activityType.includes("달리기")) {
-    return STRETCHING_VIDEOS.running;
-  }
-  if (job.includes("사무") || sitHours >= 8) {
-    return STRETCHING_VIDEOS.upper;
-  }
-  if (steps >= 8000 || bmi >= 25) {
-    return STRETCHING_VIDEOS.lower;
-  }
+  if (activityType.includes('러닝') || activityType.includes('달리기')) return STRETCHING_VIDEOS.running;
+  if (job.includes('사무') || d.앉아있는시간?.includes('10시간')) return STRETCHING_VIDEOS.upper;
+  if (steps.includes('8,000') || steps.includes('10,000') || bmi >= 25) return STRETCHING_VIDEOS.lower;
   return STRETCHING_VIDEOS.daily;
 }
 
-// ================================
-// 유산소 선택 (회원 특성 기반)
-// ================================
-const CARDIO_VIDEOS = {
-  beginnerInterval:     { url: "https://youtu.be/fdJxMh8hCRI?si=vsLF41RYJh4lGMCr", label: "인터벌 러닝 초보" },
-  inclineWalk:          { url: "https://youtu.be/j3q2UAW7hiA?si=Rnd-aALpPo1EH0SG", label: "인클라인 걷기" },
-  stairmaster:          { url: "https://youtu.be/nrRnCbyFRTY?si=2p8flJMt-pcIar5d", label: "천국의 계단" },
-  intermediateInterval: { url: "https://youtu.be/OKnLNyn11-0?si=gtMl_qftrbITfahK", label: "인터벌 러닝 중급" },
-};
-
-function resolveCardio(memberData) {
-  const level = memberData._exerciseLevel; // 'beginner' | 'intermediate' | 'advanced'
-  const gym = memberData.헬스장이용 === "예";
-  const activityType = memberData.운동종류 || "";
-
-  if ((level === "intermediate" || level === "advanced") && activityType.includes("러닝")) {
-    return CARDIO_VIDEOS.intermediateInterval;
-  }
-  if (gym) {
-    return level === "beginner" ? CARDIO_VIDEOS.inclineWalk : CARDIO_VIDEOS.stairmaster;
-  }
-  return level === "beginner" ? CARDIO_VIDEOS.beginnerInterval : CARDIO_VIDEOS.intermediateInterval;
-}
-
-// ================================
-// 회원 맞춤 VIDEO_MAP 완성
-// ================================
-function buildVideoMap(memberData) {
+function buildVideoMap(d) {
   const map = { ...VIDEO_MAP };
-  const stretching = resolveStretching(memberData);
-  map.D4  = { ...stretching };
-  map.D11 = { ...stretching };
-  map.D18 = { ...stretching };
-  map.D25 = { ...stretching };
+  const s = resolveStretching(d);
+  map.D4  = { ...s };
+  map.D11 = { ...s };
+  map.D18 = { ...s };
+  map.D25 = { ...s };
   return map;
 }
 
-// ================================
-// 회원 레벨별 28일 운동 플랜
-// ================================
+// ──────────────────────────────────────────
+// 운동 배치 플랜
+// ──────────────────────────────────────────
 const WORKOUT_PLANS = {
   beginner: {
     level: '초보자',
@@ -386,29 +341,6 @@ const WORKOUT_PLANS = {
     ]
   }
 };
-
-// ================================
-// 실제 사용: 회원 맞춤 28일 플랜 생성
-// ================================
-function getMemberWorkoutPlan(memberData) {
-  const level = memberData._exerciseLevel || 'beginner';
-  const plan = WORKOUT_PLANS[level];
-  const videoMap = buildVideoMap(memberData);
-
-  return plan.weeks.map((week, weekIdx) => {
-    const days = ['mon','tue','wed','thu','fri','sat','sun'];
-    return days.map((day, dayIdx) => {
-      const dCode = week[day];
-      const video = videoMap[dCode];
-      return {
-        weekNum: weekIdx + 1,
-        dayNum: weekIdx * 7 + dayIdx + 1,
-        dayLabel: ['월','화','수','목','금','토','일'][dayIdx],
-        dCode,
-        ...video
-      };
-    });
-  });
 
 // ──────────────────────────────────────────
 // 계산 엔진
@@ -486,13 +418,10 @@ function calcAll(d) {
   const dietRisk = calcDietRisk(d);
   const safetyFlag = recoveryRisk >= 4 || hormoneRisk >= 2 || dietRisk >= 4;
 
-  let deficit = 350;
-  if (safetyFlag) deficit = 250;
-
+  let deficit = safetyFlag ? 250 : 350;
   const goalType = d.목표?.includes('근육') ? 'muscle' : 'fat_loss';
   let targetCal = goalType === 'muscle' ? tdee + 200 : tdee - deficit;
-  targetCal = Math.max(targetCal, bmr);
-  targetCal = Math.round(targetCal);
+  targetCal = Math.max(Math.round(targetCal), bmr);
 
   const protein = Math.round(d.현재체중 * (goalType === 'muscle' ? 1.5 : 1.2));
   const fat = Math.max(Math.round(targetCal * 0.25 / 9), 40);
@@ -503,7 +432,6 @@ function calcAll(d) {
   const fatPct = Math.round(fat * 9 / targetCal * 100);
   const carbPct = 100 - proteinPct - fatPct;
 
-  // 운동 레벨
   const freqMap = { '주 1회': 1, '주 2회': 2, '주 3회': 3, '주 4회': 4, '주 5회 이상': 5 };
   const freq = freqMap[d.운동빈도] || 0;
   let workoutLevel = 'beginner';
@@ -511,7 +439,6 @@ function calcAll(d) {
   else if (freq >= 4) workoutLevel = 'advanced';
   else if (freq >= 2) workoutLevel = 'intermediate';
 
-  // 회원 유형
   let userType = '균형형';
   if (dietRisk >= 3 && freq <= 1) userType = '저활동-식습관위험형';
   else if (freq >= 3 && dietRisk >= 2) userType = '운동하지만정체형';
@@ -538,7 +465,6 @@ function generateMissions(d, calc) {
     week4: { theme: '마무리 · 습관 고정', mission1: '', mission2: '', dailyFix: '' },
   };
 
-  // 1주차
   missions.week1.mission1 = d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회')
     ? '매끼 단백질 식품 1가지 이상 포함하기 (계란, 닭가슴살, 두부, 그릭요거트)'
     : '하루 식사 3끼 규칙적으로 챙기기';
@@ -549,7 +475,6 @@ function generateMissions(d, calc) {
     ? '하루 물 1.5L 이상 마시기'
     : '하루 물 2L 마시기';
 
-  // 2주차
   missions.week2.mission1 = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('매일')
     ? '외식 시 단백질 메뉴 먼저 고르기 + 탄수화물 반공기 줄이기'
     : '주 3회 이상 채소 반찬 추가하기';
@@ -558,14 +483,12 @@ function generateMissions(d, calc) {
     ? '하루 걸음수 6,000보 이상 채우기'
     : '하루 걸음수 8,000보 이상 채우기';
 
-  // 3주차
   missions.week3.mission1 = '저녁 탄수화물 절반 줄이고 채소로 대체 (밥 반공기 → 채소 추가)';
   missions.week3.mission2 = d.자유식허용 === '원함' || d.자유식허용 === '코치에게 맡김'
     ? '주말 자유식 다음 날 정상식 복귀 — 굶지 않기'
     : '간식 대신 단백질 식품으로 대체하기';
   missions.week3.dailyFix = '하루 물 2L + 채소 2가지 이상 섭취';
 
-  // 4주차
   missions.week4.mission1 = '4주 식단 + 운동 이행률 80% 이상 달성하기';
   missions.week4.mission2 = '다음 달 목표 3가지 직접 작성해서 공유하기';
   missions.week4.dailyFix = '하루 7,000보 + 수면 7시간 목표';
@@ -577,9 +500,7 @@ function generateMissions(d, calc) {
 // 기본 식단 생성
 // ──────────────────────────────────────────
 function generateMealPlan(calc, d) {
-  const kcal = calc.targetCal;
   const meals4 = d.식사횟수 !== '3끼';
-
   const days = ['월', '화', '수', '목', '금', '토', '일'];
   const templates = [
     [
@@ -651,7 +572,6 @@ function showTab(id, el) {
 }
 
 function renderSummary(d, calc) {
-  // 회원 바
   const initials = (d.이름 || '??').slice(0, 2);
   const tags = [
     { text: d.목표 || '-', color: 'pink' },
@@ -664,11 +584,10 @@ function renderSummary(d, calc) {
       <div class="member-name">${d.이름 || '-'}</div>
       <div class="member-sub">${d.나이 || '-'}세 · ${d.성별 || '-'} · ${d.프로그램 || '온라인 코칭'}</div>
       <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-        ${tags.map(t => `<span class="tag badge-${t.color === 'pink' ? 'red' : t.color === 'blue' ? 'blue' : 'green'}" style="background:var(--${t.color === 'pink' ? 'pink' : t.color === 'blue' ? 'blue' : 'green'}-bg);color:var(--${t.color === 'pink' ? 'pink-dark' : t.color === 'blue' ? 'blue' : 'green'})">${t.text}</span>`).join('')}
+        ${tags.map(t => `<span class="tag" style="background:var(--${t.color === 'pink' ? 'pink-light' : t.color === 'blue' ? 'blue-bg' : 'green-bg'});color:var(--${t.color === 'pink' ? 'pink-dark' : t.color === 'blue' ? 'blue' : 'green'})">${t.text}</span>`).join('')}
       </div>
     </div>`;
 
-  // 신체 측정
   document.getElementById('body-metrics').innerHTML = [
     { label: '키', val: d.키, unit: 'cm' },
     { label: '체중', val: d.현재체중, unit: 'kg' },
@@ -676,13 +595,11 @@ function renderSummary(d, calc) {
     { label: '골격근량', val: d.골격근량, unit: 'kg' },
   ].map(m => `<div class="metric"><div class="metric-label">${m.label}</div><div class="metric-val">${m.val || '-'}<span>${m.unit}</span></div></div>`).join('');
 
-  // 칼로리
   document.getElementById('calorie-metrics').innerHTML = `
     <div class="metric"><div class="metric-label">기초대사량 (BMR)</div><div class="metric-val">${calc.bmr.toLocaleString()}<span>kcal</span></div></div>
     <div class="metric"><div class="metric-label">활동대사량 (TDEE)</div><div class="metric-val">${calc.tdee.toLocaleString()}<span>kcal</span></div></div>
     <div class="metric" style="border:1px solid var(--pink);"><div class="metric-label">목표 섭취 칼로리</div><div class="metric-val highlight">${calc.targetCal.toLocaleString()}<span>kcal</span></div></div>`;
 
-  // 탄단지
   document.getElementById('macro-section').innerHTML = `
     <div class="macro-bar">
       <div class="bar-p" style="width:${calc.proteinPct}%"></div>
@@ -696,10 +613,9 @@ function renderSummary(d, calc) {
     </div>
     <div style="margin-top:10px;font-size:12px;color:var(--text3);">활동계수 ${calc.totalFactor} · ${calc.safetyFlag ? '⚠️ Safety Flag ON (적자 완화 적용)' : 'Safety Flag OFF'} · 회원유형: ${calc.userType}</div>`;
 
-  // 리스크
   const dietBadge = calc.dietRisk >= 4 ? 'badge-red' : calc.dietRisk >= 2 ? 'badge-amber' : 'badge-green';
-  const recBadge = calc.recoveryRisk >= 4 ? 'badge-red' : calc.recoveryRisk >= 2 ? 'badge-amber' : 'badge-green';
-  const horBadge = calc.hormoneRisk >= 3 ? 'badge-red' : calc.hormoneRisk >= 2 ? 'badge-amber' : 'badge-green';
+  const recBadge  = calc.recoveryRisk >= 4 ? 'badge-red' : calc.recoveryRisk >= 2 ? 'badge-amber' : 'badge-green';
+  const horBadge  = calc.hormoneRisk >= 3 ? 'badge-red' : calc.hormoneRisk >= 2 ? 'badge-amber' : 'badge-green';
   document.getElementById('risk-section').innerHTML = `
     <div class="risk-row">
       <span class="badge ${dietBadge}">식습관 위험 ${calc.dietRisk}/8</span>
@@ -722,8 +638,8 @@ function renderMissions(missions) {
     </div>`).join('');
 }
 
-function renderMeal(mealPlan, calc) {
-  const likes = currentData?.좋아하는음식 || '';
+function renderMeal(mealPlan) {
+  const likes    = currentData?.좋아하는음식 || '';
   const dislikes = currentData?.싫어하는음식 || '';
   const infoHtml = (likes || dislikes) ? `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">좋아하는 음식: ${likes || '-'} · 못 먹는 음식: ${dislikes || '-'}</div>` : '';
 
@@ -733,7 +649,7 @@ function renderMeal(mealPlan, calc) {
       ${day.meals.map(m => `
         <div class="meal-row">
           <span class="meal-type">${m.type}</span>
-          <span class="meal-foods" contenteditable="true" class="editable" oninput="updateMeal(${i},'${m.type}',this)">${m.foods}</span>
+          <span class="meal-foods editable" contenteditable="true" oninput="updateMeal(${i},'${m.type}',this)">${m.foods}</span>
           <span class="meal-kcal">${m.kcal}kcal</span>
         </div>`).join('')}
     </div>`).join('') + `
@@ -750,26 +666,29 @@ function renderMeal(mealPlan, calc) {
 }
 
 function updateMeal(dayIdx, mealType, el) {
-  const day = currentMealPlan[dayIdx];
-  const meal = day.meals.find(m => m.type === mealType);
+  const meal = currentMealPlan[dayIdx].meals.find(m => m.type === mealType);
   if (meal) meal.foods = el.textContent;
 }
 
 function renderWorkout(workoutLevel) {
   const plan = WORKOUT_PLANS[workoutLevel];
-  const videoMap = buildVideoMap(currentData);  // ← 이 줄 추가
+  const videoMap = buildVideoMap(currentData);
   document.getElementById('workout-level-label').textContent = `${plan.level} 기준 · 주 5회 운동 + 2회 스트레칭/휴식`;
 
-  const days = ['월', '화', '수', '목', '금', '토', '일'];
+  const days    = ['월', '화', '수', '목', '금', '토', '일'];
   const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const typeLabel = { tabata: '타바타', lower: '하체', upper: '상체', core: '코어', strength: '전신근력', stretch: '스트레칭' };
 
   const rows = plan.weeks.map((w, wi) => `
     <tr>
       <td class="wk-label">${wi+1}주</td>
       ${dayKeys.map(dk => {
-        const vid = videoMap[w[dk]];  // ← VIDEOS → videoMap 으로 변경
+        const vid = videoMap[w[dk]];
         if (!vid) return '<td><span class="wt-rest">휴식</span></td>';
-        return `<td><a href="${vid.url}" target="_blank" style="text-decoration:none;"><span class="wt wt-${vid.type}">${vid.type === 'tabata' ? '타바타' : vid.type === 'lower' ? '하체' : vid.type === 'upper' ? '상체' : vid.type === 'core' ? '코어' : vid.type === 'strength' ? '전신근력' : '스트레칭'}</span><span class="day-sub">${vid.label}</span></a></td>`;
+        return `<td><a href="${vid.url}" target="_blank" style="text-decoration:none;">
+          <span class="wt wt-${vid.type}">${typeLabel[vid.type] || vid.type}</span>
+          <span class="day-sub">${vid.label}</span>
+        </a></td>`;
       }).join('')}
     </tr>`).join('');
 
@@ -779,18 +698,16 @@ function renderWorkout(workoutLevel) {
       ${rows}
     </table>`;
 
-  currentWorkout = {
-    level: plan.level,
-    week1: plan.weeks[0], week2: plan.weeks[1],
-    week3: plan.weeks[2], week4: plan.weeks[3],
-  };
+  currentWorkout = { level: plan.level };
   ['week1','week2','week3','week4'].forEach((wk, wi) => {
+    currentWorkout[wk] = {};
     dayKeys.forEach(dk => {
-      const vid = videoMap[plan.weeks[wi][dk]];  // ← VIDEOS → videoMap 으로 변경
+      const vid = videoMap[plan.weeks[wi][dk]];
       currentWorkout[wk][dk] = vid ? `${vid.label} (${plan.weeks[wi][dk]})` : '휴식';
     });
   });
 }
+
 // ──────────────────────────────────────────
 // API 연동
 // ──────────────────────────────────────────
@@ -830,7 +747,7 @@ async function loadMember() {
 
     renderSummary(data, currentCalc);
     renderMissions(currentMissions);
-    renderMeal(currentMealPlan, currentCalc);
+    renderMeal(currentMealPlan);
     renderWorkout(currentCalc.workoutLevel);
 
     document.getElementById('loading').style.display = 'none';
@@ -862,7 +779,7 @@ async function saveToNotion() {
         }
       })
     });
-    const { success, pageId } = await res.json();
+    const { success } = await res.json();
     if (success) {
       msg.textContent = '✅ 노션에 저장 완료!';
       btn.textContent = '저장 완료';
