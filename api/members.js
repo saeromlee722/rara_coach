@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const rootPageId = process.env.NOTION_ROOT_PAGE_ID;
+    const rootPageId = process.env.NOTION_ONLINE_PT_PAGE_ID;
     const children = await notion.blocks.children.list({ block_id: rootPageId, page_size: 100 });
 
     const members = children.results
