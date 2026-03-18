@@ -247,36 +247,116 @@
 // ──────────────────────────────────────────
 // 운동 영상 DB
 // ──────────────────────────────────────────
-const VIDEOS = {
-  D1:  { label: '전신 30분', type: 'tabata',   url: 'https://youtube.com/@rara.fit.official' },
-  D2:  { label: '코어 15분', type: 'core',     url: 'https://youtube.com/@rara.fit.official' },
-  D3:  { label: '하체 19분', type: 'lower',    url: 'https://youtube.com/@rara.fit.official' },
-  D4:  { label: '스트레칭 6분', type: 'stretch', url: 'https://youtube.com/@rara.fit.official' },
-  D5:  { label: '전신근력 20분', type: 'strength', url: 'https://youtube.com/@rara.fit.official' },
-  D6:  { label: '어깨 20분', type: 'upper',    url: 'https://youtube.com/@rara.fit.official' },
-  D8:  { label: '타바타 30분', type: 'tabata', url: 'https://youtube.com/@rara.fit.official' },
-  D9:  { label: '코어 17분', type: 'core',     url: 'https://youtube.com/@rara.fit.official' },
-  D10: { label: '힙업 20분', type: 'lower',    url: 'https://youtube.com/@rara.fit.official' },
-  D11: { label: '스트레칭 10분', type: 'stretch', url: 'https://youtube.com/@rara.fit.official' },
-  D12: { label: '전신근력 20분', type: 'strength', url: 'https://youtube.com/@rara.fit.official' },
-  D13: { label: '쇄골 15분', type: 'upper',    url: 'https://youtube.com/@rara.fit.official' },
-  D15: { label: '타바타 30분', type: 'tabata', url: 'https://youtube.com/@rara.fit.official' },
-  D16: { label: '코어 10분', type: 'core',     url: 'https://youtube.com/@rara.fit.official' },
-  D17: { label: '하체 14분', type: 'lower',    url: 'https://youtube.com/@rara.fit.official' },
-  D18: { label: '스트레칭 7분', type: 'stretch', url: 'https://youtube.com/@rara.fit.official' },
-  D19: { label: '근력 22분', type: 'strength', url: 'https://youtube.com/@rara.fit.official' },
-  D20: { label: '상체 14분', type: 'upper',    url: 'https://youtube.com/@rara.fit.official' },
-  D22: { label: '타바타 30분', type: 'tabata', url: 'https://youtube.com/@rara.fit.official' },
-  D23: { label: '복근 16분', type: 'core',     url: 'https://youtube.com/@rara.fit.official' },
-  D24: { label: '하체 14분', type: 'lower',    url: 'https://youtube.com/@rara.fit.official' },
-  D25: { label: '스트레칭 8분', type: 'stretch', url: 'https://youtube.com/@rara.fit.official' },
-  D26: { label: '전신근력 20분', type: 'strength', url: 'https://youtube.com/@rara.fit.official' },
-  D27: { label: '팔뚝 15분', type: 'upper',    url: 'https://youtube.com/@rara.fit.official' },
+// ================================
+// 영상 URL 맵 (D코드 → 실제 링크)
+// ================================
+const VIDEO_MAP = {
+  // 타바타 (고강도 전신)
+  D1:  { url: "https://youtu.be/BlUyoiw2qbM?si=P4Oe207xt4S8pEpW", label: "전신고강도 타바타", duration: 31, category: "tabata" },
+  D8:  { url: "https://youtu.be/DUKdddGmJb4?si=d55BFcfbW7_jiFfa", label: "전신고강도 타바타", duration: 30, category: "tabata" },
+  D15: { url: "https://youtu.be/S8Mi9hw_Z3I?si=havmnHIG23fhcQju", label: "전신고강도 타바타", duration: 30, category: "tabata" },
+  D22: { url: "https://youtu.be/6HA-ZWI7mRE?si=rsSWDvCyh4At4d2x", label: "전신고강도 타바타", duration: 30, category: "tabata" },
+
+  // 코어
+  D2:  { url: "https://youtu.be/N9ocAgrW5Kg?si=S-1DGYjsLI0qqfUk", label: "복근/코어", duration: 15, category: "core" },
+  D9:  { url: "https://youtu.be/R9yjgccO3SA?si=Iia4LAJd98-Q_L9p", label: "복근/코어", duration: 17, category: "core" },
+  D16: { url: "https://youtu.be/aS3vfElrQks?si=BXJwPpOCCVVQSPpa", label: "복근/코어", duration: 10, category: "core" },
+  D23: { url: "https://youtu.be/aB0mF0WMsig?si=kvdOdQgdnqtnPluk", label: "복근/코어", duration: 16, category: "core" },
+
+  // 힙/하체
+  D3:  { url: "https://youtu.be/Zdz4MUI1vq4?si=dsQYI6ifFFj7H3e-", label: "힙/하체", duration: 19, category: "lower" },
+  D10: { url: "https://youtu.be/SP4UNIo0aNI?si=zDdNDrcslYkkOsiq", label: "힙/하체", duration: 20, category: "lower" },
+  D17: { url: "https://youtu.be/_MYj2Y-fO5c?si=CWuzbVUS1Ch4Ggzz", label: "힙/하체", duration: 14, category: "lower" },
+  D24: { url: "https://youtu.be/7WXQHqtJf_U?si=-luGzP8-tSsBNQfT", label: "힙/하체", duration: 14, category: "lower" },
+
+  // 근력서킷
+  D5:  { url: "https://youtu.be/hPsacN_Lays?si=bZTHxVPgF6JasFBN", label: "근력서킷", duration: 20, category: "circuit" },
+  D12: { url: "https://youtu.be/rsRSWM7M74Y?si=if7l1AsbE4McuqoP", label: "근력서킷", duration: 20, category: "circuit" },
+  D19: { url: "https://youtu.be/ome52BW_7AU?si=pVnkjOWUOfwZTYjW", label: "근력서킷", duration: 22, category: "circuit" },
+  D26: { url: "https://youtu.be/hALCIrwS7ow?si=csnj069w4gQI1lEI", label: "근력서킷", duration: 20, category: "circuit" },
+
+  // 상체
+  D6:  { url: "https://youtu.be/XTIQXndqppY?si=KkBvkiqR-sEy6fjo", label: "상체", duration: 20, category: "upper" },
+  D13: { url: "https://youtu.be/hOmc2vA_CGg?si=jTIRvBozPWyLvyJ3", label: "상체", duration: 15, category: "upper" },
+  D20: { url: "https://youtu.be/8p8DQozrGjc?si=tH1Jw0E1xhPCKMaE", label: "상체", duration: 14, category: "upper" },
+  D27: { url: "https://youtu.be/AOr_opVFL-I?si=M-CM9MhnWfhaAFP4", label: "상체", duration: 15, category: "upper" },
+
+  // 스트레칭 (D4, D11, D18, D25) → buildVideoMap()에서 회원 특성 보고 채워짐
+  D4:  null,
+  D11: null,
+  D18: null,
+  D25: null,
 };
 
-// ──────────────────────────────────────────
-// 운동 배치 플랜
-// ──────────────────────────────────────────
+// ================================
+// 스트레칭 선택 (회원 특성 기반)
+// ================================
+const STRETCHING_VIDEOS = {
+  daily:   { url: "https://youtu.be/4rQbhgzlyxU?si=fOtdFftmgee6p48y", label: "데일리 스트레칭", duration: 6 },
+  lower:   { url: "https://youtu.be/gE1HJqJE1lk?si=bPMUBPgwiI4y9MQq", label: "하체 스트레칭", duration: 10 },
+  upper:   { url: "https://youtu.be/e_yiQRkpDRY?si=ZHwkLNUzhnUle7YN", label: "등/어깨 스트레칭", duration: 7 },
+  running: { url: "https://youtu.be/2PulSaeQimY?si=Ehm0Chn1URfwI9N_", label: "러닝 스트레칭", duration: 8 },
+};
+
+function resolveStretching(memberData) {
+  const activityType = memberData.운동종류 || "";
+  const job = memberData.직장형태 || "";
+  const sitHours = parseInt(memberData.앉아있는시간) || 0;
+  const steps = parseInt(memberData.걸음수) || 0;
+  const bmi = memberData._bmi || 0; // 계산된 BMI
+
+  if (activityType.includes("러닝") || activityType.includes("달리기")) {
+    return STRETCHING_VIDEOS.running;
+  }
+  if (job.includes("사무") || sitHours >= 8) {
+    return STRETCHING_VIDEOS.upper;
+  }
+  if (steps >= 8000 || bmi >= 25) {
+    return STRETCHING_VIDEOS.lower;
+  }
+  return STRETCHING_VIDEOS.daily;
+}
+
+// ================================
+// 유산소 선택 (회원 특성 기반)
+// ================================
+const CARDIO_VIDEOS = {
+  beginnerInterval:     { url: "https://youtu.be/fdJxMh8hCRI?si=vsLF41RYJh4lGMCr", label: "인터벌 러닝 초보" },
+  inclineWalk:          { url: "https://youtu.be/j3q2UAW7hiA?si=Rnd-aALpPo1EH0SG", label: "인클라인 걷기" },
+  stairmaster:          { url: "https://youtu.be/nrRnCbyFRTY?si=2p8flJMt-pcIar5d", label: "천국의 계단" },
+  intermediateInterval: { url: "https://youtu.be/OKnLNyn11-0?si=gtMl_qftrbITfahK", label: "인터벌 러닝 중급" },
+};
+
+function resolveCardio(memberData) {
+  const level = memberData._exerciseLevel; // 'beginner' | 'intermediate' | 'advanced'
+  const gym = memberData.헬스장이용 === "예";
+  const activityType = memberData.운동종류 || "";
+
+  if ((level === "intermediate" || level === "advanced") && activityType.includes("러닝")) {
+    return CARDIO_VIDEOS.intermediateInterval;
+  }
+  if (gym) {
+    return level === "beginner" ? CARDIO_VIDEOS.inclineWalk : CARDIO_VIDEOS.stairmaster;
+  }
+  return level === "beginner" ? CARDIO_VIDEOS.beginnerInterval : CARDIO_VIDEOS.intermediateInterval;
+}
+
+// ================================
+// 회원 맞춤 VIDEO_MAP 완성
+// ================================
+function buildVideoMap(memberData) {
+  const map = { ...VIDEO_MAP };
+  const stretching = resolveStretching(memberData);
+  map.D4  = { ...stretching };
+  map.D11 = { ...stretching };
+  map.D18 = { ...stretching };
+  map.D25 = { ...stretching };
+  return map;
+}
+
+// ================================
+// 회원 레벨별 28일 운동 플랜
+// ================================
 const WORKOUT_PLANS = {
   beginner: {
     level: '초보자',
@@ -306,6 +386,29 @@ const WORKOUT_PLANS = {
     ]
   }
 };
+
+// ================================
+// 실제 사용: 회원 맞춤 28일 플랜 생성
+// ================================
+function getMemberWorkoutPlan(memberData) {
+  const level = memberData._exerciseLevel || 'beginner';
+  const plan = WORKOUT_PLANS[level];
+  const videoMap = buildVideoMap(memberData);
+
+  return plan.weeks.map((week, weekIdx) => {
+    const days = ['mon','tue','wed','thu','fri','sat','sun'];
+    return days.map((day, dayIdx) => {
+      const dCode = week[day];
+      const video = videoMap[dCode];
+      return {
+        weekNum: weekIdx + 1,
+        dayNum: weekIdx * 7 + dayIdx + 1,
+        dayLabel: ['월','화','수','목','금','토','일'][dayIdx],
+        dCode,
+        ...video
+      };
+    });
+  });
 
 // ──────────────────────────────────────────
 // 계산 엔진
@@ -654,6 +757,7 @@ function updateMeal(dayIdx, mealType, el) {
 
 function renderWorkout(workoutLevel) {
   const plan = WORKOUT_PLANS[workoutLevel];
+  const videoMap = buildVideoMap(currentData);  // ← 이 줄 추가
   document.getElementById('workout-level-label').textContent = `${plan.level} 기준 · 주 5회 운동 + 2회 스트레칭/휴식`;
 
   const days = ['월', '화', '수', '목', '금', '토', '일'];
@@ -663,7 +767,7 @@ function renderWorkout(workoutLevel) {
     <tr>
       <td class="wk-label">${wi+1}주</td>
       ${dayKeys.map(dk => {
-        const vid = VIDEOS[w[dk]];
+        const vid = videoMap[w[dk]];  // ← VIDEOS → videoMap 으로 변경
         if (!vid) return '<td><span class="wt-rest">휴식</span></td>';
         return `<td><a href="${vid.url}" target="_blank" style="text-decoration:none;"><span class="wt wt-${vid.type}">${vid.type === 'tabata' ? '타바타' : vid.type === 'lower' ? '하체' : vid.type === 'upper' ? '상체' : vid.type === 'core' ? '코어' : vid.type === 'strength' ? '전신근력' : '스트레칭'}</span><span class="day-sub">${vid.label}</span></a></td>`;
       }).join('')}
@@ -675,21 +779,18 @@ function renderWorkout(workoutLevel) {
       ${rows}
     </table>`;
 
-  // workout 데이터 저장
   currentWorkout = {
     level: plan.level,
     week1: plan.weeks[0], week2: plan.weeks[1],
     week3: plan.weeks[2], week4: plan.weeks[3],
   };
-  // 각 주차에 텍스트 레이블 추가
   ['week1','week2','week3','week4'].forEach((wk, wi) => {
     dayKeys.forEach(dk => {
-      const vid = VIDEOS[plan.weeks[wi][dk]];
+      const vid = videoMap[plan.weeks[wi][dk]];  // ← VIDEOS → videoMap 으로 변경
       currentWorkout[wk][dk] = vid ? `${vid.label} (${plan.weeks[wi][dk]})` : '휴식';
     });
   });
 }
-
 // ──────────────────────────────────────────
 // API 연동
 // ──────────────────────────────────────────
