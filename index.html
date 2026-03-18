@@ -778,7 +778,7 @@ function renderWorkout(workoutLevel) {
     currentWorkout[wk] = {};
     dayKeys.forEach(dk => {
       const vid = videoMap[plan.weeks[wi][dk]];
-      currentWorkout[wk][dk] = vid ? `${vid.label} (${plan.weeks[wi][dk]})` : '휴식';
+      currentWorkout[wk][dk] = vid ? `${vid.label}||${vid.url}` : '휴식';
     });
   });
 }
@@ -835,11 +835,18 @@ async function saveToNotion() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ memberId: currentMemberId, result: { memberInfo: currentData, calc: currentCalc, missions: currentMissions, mealPlan: currentMealPlan, workout: currentWorkout } })
     });
-const { success, pageId } = await res.json();  // ← pageId 추가
+const { success, memberId: savedMemberId } = await res.json();
 if (success) {
-  msg.innerHTML = `✅ 저장 완료! <a href="https://notion.so/${(pageId||'').replace(/-/g,'')}" target="_blank" style="color:var(--pink); margin-left:8px;">📄 노션 페이지 열기 →</a>`;
+  const memberUrl = `${location.origin}/member.html?memberId=${savedMemberId || currentMemberId}`;
+  msg.innerHTML = `✅ 저장 완료! &nbsp;
+    <a href="${memberUrl}" target="_blank" style="color:var(--pink);font-weight:500;">📄 미리보기</a> &nbsp;
+    <button onclick="navigator.clipboard.writeText('${memberUrl}').then(()=>this.textContent='✅ 복사됨!')" 
+      style="background:var(--pink);color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">
+      📋 회원 링크 복사
+    </button>`;
   btn.textContent = '저장 완료';
 }
+    
   } catch (e) {
     msg.textContent = '❌ 저장 실패: ' + e.message;
     btn.disabled = false; btn.textContent = '노션에 저장하기';
