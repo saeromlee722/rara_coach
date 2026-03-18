@@ -457,43 +457,224 @@ function calcAll(d) {
 // ──────────────────────────────────────────
 // 미션 생성
 // ──────────────────────────────────────────
+// ──────────────────────────────────────────
+// 유산소 미션용 영상
+// ──────────────────────────────────────────
+const CARDIO_MISSION_VIDEOS = {
+  beginner:     { label: '인터벌 러닝 초보 (30분)', url: 'https://youtu.be/fdJxMh8hCRI?si=vsLF41RYJh4lGMCr' },
+  incline:      { label: '인클라인 워킹 (30분)',    url: 'https://youtu.be/j3q2UAW7hiA?si=Rnd-aALpPo1EH0SG' },
+  stairmaster:  { label: '천국의 계단 (30분)',       url: 'https://youtu.be/nrRnCbyFRTY?si=2p8flJMt-pcIar5d' },
+  intermediate: { label: '인터벌 러닝 중급 (30분)', url: 'https://youtu.be/OKnLNyn11-0?si=gtMl_qftrbITfahK' },
+};
+
+function resolveCardioMission(d, calc) {
+  const gym = d.헬스장이용 === '예';
+  const level = calc.workoutLevel;
+  if (gym && level === 'advanced') return CARDIO_MISSION_VIDEOS.stairmaster;
+  if (gym) return CARDIO_MISSION_VIDEOS.incline;
+  if (level === 'beginner') return CARDIO_MISSION_VIDEOS.beginner;
+  return CARDIO_MISSION_VIDEOS.intermediate;
+}
+
+function wantsFastLoss(d) {
+  const goal = d.목표기간 || '';
+  const amt = parseFloat(d.목표감량증량) || 0;
+  return goal.includes('1개월') || goal.includes('2개월') || amt >= 5;
+}
+
+// ──────────────────────────────────────────
+// 데일리 랜덤 미션 풀
+// ──────────────────────────────────────────
+const DAILY_POOL = {
+  식단: [
+    '오늘 한 끼 채소 2배로 먹기',
+    '단백질 먼저 먹고 탄수화물 먹기',
+    '식사 중 숟가락 3번 내려놓기',
+    '식사 중 물 2잔 마시기',
+    '식사 사진 찍어서 기록하기',
+    '한 끼 천천히 20분 먹기',
+    '평소보다 밥 20% 줄이기',
+    '배부름 80%에서 멈추기',
+    '가공식품 안 먹기 하루',
+    '간식 대신 과일 먹기',
+  ],
+  활동: [
+    '오늘 8,000보 걷기',
+    '계단 10층 이상 이용하기',
+    '스쿼트 30개 하기',
+    '런지 20개 하기',
+    '플랭크 30초 × 3세트',
+    '10분 스트레칭',
+    '15분 산책',
+    '집안일 20분 하기',
+    '빠르게 걷기 15분',
+    '만보 채우기',
+  ],
+  수분: [
+    '물 2.5L 마시기',
+    '카페인 0잔 도전',
+    '음료 대신 물만 마시기',
+    '저녁 이후 물만 마시기',
+    '식사 전 물 한 잔 마시기',
+  ],
+  행동교정: [
+    '오늘 폭식 욕구 느꼈을 때 기록하기',
+    '배고픔 vs 식욕 구분하기',
+    '음식 먹기 전 10초 멈추기',
+    '식사 중 핸드폰 안 보기',
+    '배부름 체크 3번 하기',
+    '오늘 외식 시 메뉴 기록하기',
+  ],
+  회복: [
+    '오늘 7시간 이상 수면 목표 세우기',
+    '자기 전 스트레칭 5분',
+    '자기 전 핸드폰 30분 금지',
+    '오늘 감사한 것 1가지 기록하기',
+    '오늘 컨디션 점수 매기기 (1~10점)',
+    '5분 호흡 / 명상',
+  ],
+};
+
+// 28일치 데일리 미션 생성 (매주 1일차 = 바디체크 고정)
+function pickDailyRotating(d, calc) {
+  const BODY_CHECK = '📸 눈바디 촬영 + ⚖️ 공복 체중 체크 + 📏 둘레 측정 (허리·엉덩이·허벅지)';
+  const categories = ['식단', '활동', '수분', '행동교정', '식단', '활동', '회복'];
+  const allDays = [];
+
+  for (let week = 0; week < 4; week++) {
+    for (let day = 0; day < 7; day++) {
+      if (day === 0) {
+        allDays.push(BODY_CHECK); // 1, 8, 15, 22일차 고정
+      } else {
+        const seed = week * 13 + day * 7;
+        const cat = categories[day];
+        const pool = DAILY_POOL[cat];
+        allDays.push(pool[seed % pool.length]);
+      }
+    }
+  }
+
+  return allDays; // 28개
+}
+
+// ──────────────────────────────────────────
+// 미션 생성
+// ──────────────────────────────────────────
 function generateMissions(d, calc) {
+  const fastLoss = wantsFastLoss(d);
+  const cardioVid = resolveCardioMission(d, calc);
+  const cardioMission = fastLoss
+    ? `유산소 운동 주 3회 이상 — 심박수 130~140bpm 유지 30분 이상 · <a href="${cardioVid.url}" target="_blank" style="color:var(--pink);">👉 추천 영상: ${cardioVid.label}</a>`
+    : null;
+
   const missions = {
-    week1: { theme: '몸 준비 · 루틴 세팅', mission1: '', mission2: '', dailyFix: '' },
-    week2: { theme: '식습관 정착 · 운동 강도 ↑', mission1: '', mission2: '', dailyFix: '' },
-    week3: { theme: '바디체크 반영 · 집중 관리', mission1: '', mission2: '', dailyFix: '' },
-    week4: { theme: '마무리 · 습관 고정', mission1: '', mission2: '', dailyFix: '' },
+    week1: { theme: '몸 준비 · 루틴 세팅',         weekly1: '', weekly2: '', dailyFixed: '' },
+    week2: { theme: '식습관 정착 · 운동 강도 ↑',   weekly1: '', weekly2: '', dailyFixed: '' },
+    week3: { theme: '바디체크 반영 · 집중 관리',    weekly1: '', weekly2: '', dailyFixed: '' },
+    week4: { theme: '마무리 · 습관 고정',           weekly1: '', weekly2: '', dailyFixed: '' },
   };
 
-  missions.week1.mission1 = d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회')
-    ? '매끼 단백질 식품 1가지 이상 포함하기 (계란, 닭가슴살, 두부, 그릭요거트)'
-    : '하루 식사 3끼 규칙적으로 챙기기';
-  missions.week1.mission2 = d.야식 === '있음'
-    ? '취침 2시간 전 음식 섭취 금지 (야식 차단)'
-    : '식사 속도 20분 이상 천천히 먹기';
-  missions.week1.dailyFix = d.물섭취량?.includes('미만') || d.물섭취량?.includes('1L')
+  // 1주차
+  missions.week1.weekly1 = d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회')
+    ? '단백질 하루 2끼 이상 포함 — 주 5일 달성하기'
+    : '하루 3끼 식사 유지 — 주 5일 이상';
+  missions.week1.weekly2 = cardioMission
+    ? cardioMission
+    : d.걸음수?.includes('3,000') || d.걸음수?.includes('5,000')
+      ? '주 3회 20분 이상 걷기'
+      : '하루 7,000보 이상 — 주 4일 달성하기';
+  missions.week1.dailyFixed = d.물섭취량?.includes('미만') || d.물섭취량?.includes('1L')
     ? '하루 물 1.5L 이상 마시기'
     : '하루 물 2L 마시기';
 
-  missions.week2.mission1 = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('매일')
-    ? '외식 시 단백질 메뉴 먼저 고르기 + 탄수화물 반공기 줄이기'
-    : '주 3회 이상 채소 반찬 추가하기';
-  missions.week2.mission2 = '주 4회 이상 운동 완료 (영상 따라 하기)';
-  missions.week2.dailyFix = d.걸음수?.includes('3,000') || d.걸음수?.includes('5,000')
+  // 2주차
+  missions.week2.weekly1 = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('매일')
+    ? '외식 시 단백질 메뉴 먼저 선택 — 주 3회 이상'
+    : '채소 하루 2회 이상 섭취 — 주 5일 달성하기';
+  missions.week2.weekly2 = cardioMission
+    ? cardioMission
+    : '주 4회 이상 운동 완료 (영상 따라하기)';
+  missions.week2.dailyFixed = d.걸음수?.includes('3,000') || d.걸음수?.includes('5,000')
     ? '하루 걸음수 6,000보 이상 채우기'
     : '하루 걸음수 8,000보 이상 채우기';
 
-  missions.week3.mission1 = '저녁 탄수화물 절반 줄이고 채소로 대체 (밥 반공기 → 채소 추가)';
-  missions.week3.mission2 = d.자유식허용 === '원함' || d.자유식허용 === '코치에게 맡김'
-    ? '주말 자유식 다음 날 정상식 복귀 — 굶지 않기'
-    : '간식 대신 단백질 식품으로 대체하기';
-  missions.week3.dailyFix = '하루 물 2L + 채소 2가지 이상 섭취';
+  // 3주차
+  missions.week3.weekly1 = '폭식 없는 날 주 5일 만들기';
+  missions.week3.weekly2 = cardioMission
+    ? cardioMission
+    : d.자유식허용 === '원함' || d.자유식허용 === '코치에게 맡김'
+      ? '자유식 주 1회 이하 유지하기'
+      : '간식 대신 단백질 식품으로 대체 — 주 4일 이상';
+  missions.week3.dailyFixed = '저녁 탄수화물 절반 줄이고 채소 추가하기';
 
-  missions.week4.mission1 = '4주 식단 + 운동 이행률 80% 이상 달성하기';
-  missions.week4.mission2 = '다음 달 목표 3가지 직접 작성해서 공유하기';
-  missions.week4.dailyFix = '하루 7,000보 + 수면 7시간 목표';
+  // 4주차
+  missions.week4.weekly1 = '4주 식단 + 운동 이행률 80% 이상 달성하기';
+  missions.week4.weekly2 = cardioMission
+    ? cardioMission
+    : '취침 시간 일정하게 유지 — 주 5일';
+  missions.week4.dailyFixed = '하루 7,000보 + 수면 7시간 목표';
+
+  // 28일치 데일리 미션 붙이기
+  missions._allDaily = pickDailyRotating(d, calc);
 
   return missions;
+}
+
+// ──────────────────────────────────────────
+// 미션 렌더링
+// ──────────────────────────────────────────
+function renderMissions(missions) {
+  const weeks    = ['week1', 'week2', 'week3', 'week4'];
+  const labels   = ['1주차', '2주차', '3주차', '4주차'];
+  const dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+  const allDaily = missions._allDaily;
+
+  document.getElementById('mission-section').innerHTML = weeks.map((w, wi) => {
+    const weekDays = allDaily.slice(wi * 7, wi * 7 + 7);
+
+    return `
+    <div class="week-block">
+      <div class="week-header">
+        <span class="week-num">${labels[wi]}</span>
+        <span class="week-theme">${missions[w].theme}</span>
+      </div>
+      <div class="week-body">
+
+        <div class="mission-row">
+          <span class="mbadge mbadge-w">주간미션 1</span>
+          <span class="mission-txt">${missions[w].weekly1}</span>
+        </div>
+        <div class="mission-row">
+          <span class="mbadge mbadge-w">주간미션 2</span>
+          <span class="mission-txt">${missions[w].weekly2}</span>
+        </div>
+        <div class="mission-row">
+          <span class="mbadge mbadge-df">데일리 고정</span>
+          <span class="mission-txt">${missions[w].dailyFixed}</span>
+        </div>
+
+        <div style="margin-top:14px; margin-bottom:6px; font-size:11px; color:var(--text3); letter-spacing:0.08em;">
+          데일리 미션 (날마다 다름) · Day ${wi * 7 + 1} – ${wi * 7 + 7}
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px;">
+          ${weekDays.map((m, di) => {
+            const isBodyCheck = di === 0;
+            return `
+            <div style="
+              background:${isBodyCheck ? 'var(--pink-light)' : 'var(--cream)'};
+              border:1px solid ${isBodyCheck ? 'var(--pink)' : 'var(--border)'};
+              border-radius:8px; padding:8px 6px; text-align:center;">
+              <div style="font-size:10px; color:${isBodyCheck ? 'var(--pink-dark)' : 'var(--pink)'}; font-weight:500; margin-bottom:4px;">
+                ${dayLabels[di]}<br>Day ${wi * 7 + di + 1}
+              </div>
+              <div style="font-size:11px; color:var(--text); line-height:1.4;">${m}</div>
+            </div>`;
+          }).join('')}
+        </div>
+
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ──────────────────────────────────────────
