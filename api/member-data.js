@@ -1,21 +1,19 @@
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
-// 노션 블록에서 텍스트 추출
 function extractText(block) {
   const rt = block[block.type]?.rich_text || [];
   return rt.map(r => r.plain_text).join('');
 }
 
-// "키: 163cm" → "163"
 function parseVal(text) {
   const match = text.match(/:\s*(.+)/);
   return match ? match[1].trim() : '';
 }
 
-// 숫자만 추출
 function parseNum(text) {
-  const match = parseVal(text).match(/[\d.]+/);
+  const val = parseVal(text);
+  const match = val.match(/[-\d.]+/);
   return match ? parseFloat(match[0]) : null;
 }
 
@@ -29,21 +27,29 @@ module.exports = async function handler(req, res) {
   if (!memberId) return res.status(400).json({ error: 'memberId required' });
 
   try {
-    // 회원 페이지의 하위 페이지(사전설문) 찾기
     const children = await notion.blocks.children.list({ block_id: memberId });
+
+    // ✅ 핵심 수정: "설문" 포함된 페이지만 찾기 (코칭플랜 제외)
     const surveyPage = children.results
       .filter(b => b.type === 'child_page')
+      .filter(b => {
+        const title = b.child_page?.title || '';
+        return title.includes('설문') || title.includes('사전');
+      })
       .sort((a, b) => new Date(b.created_time) - new Date(a.created_time))[0];
 
     if (!surveyPage) return res.status(404).json({ error: '설문 데이터 없음' });
 
     // 설문 페이지 블록 전체 읽기
-    const blocks = await notion.blocks.children.list({ block_id: surveyPage.id, page_size: 200 });
+    const blocks = await notion.blocks.children.list({
+      block_id: surveyPage.id,
+      page_size: 200
+    });
+
     const lines = blocks.results
       .filter(b => b.type === 'bulleted_list_item')
       .map(b => extractText(b));
 
-    // 파싱
     const get = (keyword) => {
       const line = lines.find(l => l.startsWith(keyword));
       return line ? parseVal(line) : '';
@@ -72,7 +78,7 @@ module.exports = async function handler(req, res) {
       운동종류: get('운동 종류'),
       운동빈도: get('운동 빈도'),
       운동시간: get('1회 운동 시간'),
-      헬스장: get('헬스장 이용'),
+      헬스장이용: get('헬스장 이용'),
       홈트가능: get('홈트 가능'),
       운동강도: get('운동 강도'),
       평소활동량: get('평소 활동량'),
@@ -93,7 +99,9 @@ module.exports = async function handler(req, res) {
       좋아하는음식: get('좋아하는 음식'),
       싫어하는음식: get('싫어하는 음식'),
       알레르기: get('알레르기'),
+      소화불편음식: get('소화 불편 음식'),
       질환: get('질환 여부'),
+      복용약: get('복용 약'),
       호르몬: get('호르몬 질환'),
       생리주기규칙성: get('생리 주기 규칙성'),
       생리통: getNum('생리통 정도'),
