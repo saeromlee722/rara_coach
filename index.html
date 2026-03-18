@@ -835,9 +835,9 @@ async function saveToNotion() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ memberId: currentMemberId, result: { memberInfo: currentData, calc: currentCalc, missions: currentMissions, mealPlan: currentMealPlan, workout: currentWorkout } })
     });
-    const { success } = await res.json();
- if (success) {
-  msg.innerHTML = `✅ 저장 완료! <a href="https://notion.so/${pageId?.replace(/-/g,'')}" target="_blank" style="color:var(--pink); margin-left:8px;">📄 노션 페이지 열기</a>`;
+ const { success, pageId } = await res.json();
+if (success) {
+  msg.innerHTML = `✅ 저장 완료! <a href="https://notion.so/${(pageId||'').replace(/-/g,'')}" target="_blank" style="color:var(--pink); margin-left:8px;">📄 노션 페이지 열기 →</a>`;
   btn.textContent = '저장 완료';
 }
   } catch (e) {
