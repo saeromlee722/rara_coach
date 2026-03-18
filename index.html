@@ -499,25 +499,189 @@ function renderMissions(missions) {
 // ──────────────────────────────────────────
 // 기본 식단 생성
 // ──────────────────────────────────────────
-function generateMealPlan(calc, d) {
-  const meals4 = d.식사횟수 !== '3끼';
-  const days = ['월', '화', '수', '목', '금', '토', '일'];
-  const templates = [
-    [{ type:'아침', foods:'그릭요거트 + 바나나 1/2 + 견과류', kcal:320 },{ type:'점심', foods:'현미밥 반공기 + 닭가슴살 + 된장국 + 나물 2종', kcal:530 },{ type:'간식', foods:'삶은 달걀 1개 + 방울토마토', kcal:120 },{ type:'저녁', foods:'두부구이 + 샐러드 + 고구마 100g', kcal:480 }],
-    [{ type:'아침', foods:'오트밀 + 달걀 스크램블 + 블루베리', kcal:350 },{ type:'점심', foods:'잡곡밥 반공기 + 연어구이 + 미역국 + 채소볶음', kcal:560 },{ type:'간식', foods:'단백질 쉐이크 (또는 두유)', kcal:100 },{ type:'저녁', foods:'닭안심 볶음 + 브로콜리 + 현미밥 반공기', kcal:490 }],
-    [{ type:'아침', foods:'삶은 달걀 2개 + 통밀식빵 1장 + 아보카도', kcal:380 },{ type:'점심', foods:'닭가슴살 샐러드 + 고구마 + 견과류', kcal:510 },{ type:'간식', foods:'그릭요거트 + 블루베리', kcal:130 },{ type:'저녁', foods:'소고기 구이 + 현미밥 반공기 + 쌈채소', kcal:530 }],
-    [{ type:'아침', foods:'프로틴 쉐이크 + 바나나', kcal:300 },{ type:'점심', foods:'비빔밥 (밥 반공기) + 계란후라이 + 채소 듬뿍', kcal:540 },{ type:'간식', foods:'치즈 1장 + 오이 1/2개', kcal:100 },{ type:'저녁', foods:'연두부 + 참치 + 방울토마토 + 고구마', kcal:480 }],
-    [{ type:'아침', foods:'달걀 오믈렛 + 통밀식빵 + 토마토', kcal:360 },{ type:'점심', foods:'현미밥 반공기 + 제육볶음 (기름 적게) + 나물', kcal:550 },{ type:'간식', foods:'아몬드 한 줌 + 사과 반개', kcal:140 },{ type:'저녁', foods:'닭가슴살 + 채소 수프 + 고구마 80g', kcal:440 }],
-    [{ type:'아침', foods:'그릭요거트 파르페 + 그래놀라 조금', kcal:340 },{ type:'점심', foods:'현미밥 반공기 + 생선구이 + 된장찌개 + 나물', kcal:530 },{ type:'간식', foods:'삶은 달걀 1개 + 오이', kcal:90 },{ type:'저녁', foods:'두부 김치볶음 + 잡곡밥 반공기', kcal:490 }],
-    [{ type:'아침', foods:'단백질 팬케이크 (귀리+달걀) + 딸기', kcal:370 },{ type:'점심', foods:'닭가슴살 볶음밥 (현미) + 계란 + 채소', kcal:540 },{ type:'간식', foods:'프로틴 바 또는 견과류', kcal:120 },{ type:'저녁', foods:'순두부찌개 + 현미밥 반공기 + 나물', kcal:480 }],
-  ];
-  return days.map((day, i) => {
-    const t = templates[i];
-    const mls = meals4 ? t : t.filter(m => m.type !== '간식');
-    return { day, meals: mls, total: mls.reduce((s, m) => s + m.kcal, 0) };
+// ──────────────────────────────────────────
+// 식단 생성 (회원 맞춤)
+// ──────────────────────────────────────────
+
+// 못 먹는 음식/알레르기 키워드 → 대체 식품 맵
+const FOOD_SUBSTITUTE = {
+  '닭가슴살': '두부', '닭': '두부', '연어': '참치', '소고기': '두부구이',
+  '달걀': '두부스크램블', '유제품': '두유', '우유': '두유', '그릭요거트': '두유',
+  '견과류': '방울토마토', '아보카도': '삶은감자', '밀가루': '쌀밥',
+  '통밀': '쌀밥', '식빵': '고구마', '빵': '고구마',
+};
+
+// 못 먹는 재료 포함 여부 체크 후 대체
+function filterFood(foodStr, excludeKeywords) {
+  if (!excludeKeywords || excludeKeywords.length === 0) return foodStr;
+  let result = foodStr;
+  for (const kw of excludeKeywords) {
+    if (result.includes(kw)) {
+      const sub = FOOD_SUBSTITUTE[kw] || '채소';
+      result = result.replace(new RegExp(kw, 'g'), sub);
+    }
+  }
+  return result;
+}
+
+// 칼로리 비율에 맞게 식단 스케일 조정
+function scaleMeals(meals, targetCal, hasMeals4) {
+  const baseTotal = meals.reduce((s, m) => s + m.kcal, 0);
+  if (baseTotal === 0) return meals;
+  const scale = targetCal / baseTotal;
+  return meals.map(m => {
+    const newKcal = Math.round(m.kcal * scale);
+    let foods = m.foods;
+    // 칼로리 구간에 따라 양 힌트 추가
+    if (scale < 0.85) {
+      if (m.type === '점심' || m.type === '저녁') foods += ' (소량)';
+      if (m.type === '아침') foods += ' (작은 양)';
+    } else if (scale > 1.15) {
+      if (m.type === '점심' || m.type === '저녁') foods += ' (넉넉히)';
+    }
+    return { ...m, foods, kcal: newKcal };
   });
 }
 
+function generateMealPlan(calc, d) {
+  const targetCal = calc.targetCal;
+
+  // 못 먹는 음식 / 알레르기 키워드 추출
+  const excludeRaw = [(d.싫어하는음식 || ''), (d.알레르기 || ''), (d.소화불편음식 || '')].join(' ');
+  const excludeKeywords = Object.keys(FOOD_SUBSTITUTE).filter(kw => excludeRaw.includes(kw));
+
+  // 회원 특성 플래그
+  const hasFreqEating  = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('매일');
+  const hasFamilyDinner = d.가족식사 === '예' || d.가족식사?.includes('가족');
+  const hasBinge       = d.폭식?.includes('자주') || d.폭식?.includes('가끔');
+  const hasLateNight   = d.야식 === '있음';
+  const meals4         = d.식사횟수 !== '3끼' || hasBinge; // 폭식 있으면 간식 강제 포함
+
+  const days = ['월', '화', '수', '목', '금', '토', '일'];
+
+  // ── 기본 7일 템플릿 (간식 포함 버전) ──
+  const BASE_TEMPLATES = [
+    [ // 월
+      { type:'아침', foods:'그릭요거트 + 바나나 1/2 + 견과류', kcal:320 },
+      { type:'점심', foods:'현미밥 반공기 + 닭가슴살 + 된장국 + 나물 2종', kcal:530 },
+      { type:'간식', foods:'삶은 달걀 1개 + 방울토마토', kcal:120 },
+      { type:'저녁', foods:'두부구이 + 샐러드 + 고구마 100g', kcal:480 },
+    ],
+    [ // 화
+      { type:'아침', foods:'오트밀 + 달걀 스크램블 + 블루베리', kcal:350 },
+      { type:'점심', foods:'잡곡밥 반공기 + 연어구이 + 미역국 + 채소볶음', kcal:560 },
+      { type:'간식', foods:'단백질 쉐이크 또는 두유', kcal:100 },
+      { type:'저녁', foods:'닭안심 볶음 + 브로콜리 + 현미밥 반공기', kcal:490 },
+    ],
+    [ // 수
+      { type:'아침', foods:'삶은 달걀 2개 + 통밀식빵 1장 + 아보카도', kcal:380 },
+      { type:'점심', foods:'닭가슴살 샐러드 + 고구마 + 견과류', kcal:510 },
+      { type:'간식', foods:'그릭요거트 + 블루베리', kcal:130 },
+      { type:'저녁', foods:'소고기 구이 + 현미밥 반공기 + 쌈채소', kcal:530 },
+    ],
+    [ // 목
+      { type:'아침', foods:'프로틴 쉐이크 + 바나나', kcal:300 },
+      { type:'점심', foods:'비빔밥 (밥 반공기) + 계란후라이 + 채소 듬뿍', kcal:540 },
+      { type:'간식', foods:'치즈 1장 + 오이 1/2개', kcal:100 },
+      { type:'저녁', foods:'연두부 + 참치 + 방울토마토 + 고구마', kcal:480 },
+    ],
+    [ // 금
+      { type:'아침', foods:'달걀 오믈렛 + 통밀식빵 + 토마토', kcal:360 },
+      { type:'점심', foods:'현미밥 반공기 + 제육볶음 (기름 적게) + 나물', kcal:550 },
+      { type:'간식', foods:'아몬드 한 줌 + 사과 반개', kcal:140 },
+      { type:'저녁', foods:'닭가슴살 + 채소 수프 + 고구마 80g', kcal:440 },
+    ],
+    [ // 토
+      { type:'아침', foods:'그릭요거트 파르페 + 그래놀라 조금', kcal:340 },
+      { type:'점심', foods:'현미밥 반공기 + 생선구이 + 된장찌개 + 나물', kcal:530 },
+      { type:'간식', foods:'삶은 달걀 1개 + 오이', kcal:90 },
+      { type:'저녁', foods:'두부 김치볶음 + 잡곡밥 반공기', kcal:490 },
+    ],
+    [ // 일
+      { type:'아침', foods:'단백질 팬케이크 (귀리+달걀) + 딸기', kcal:370 },
+      { type:'점심', foods:'닭가슴살 볶음밥 (현미) + 계란 + 채소', kcal:540 },
+      { type:'간식', foods:'프로틴 바 또는 견과류', kcal:120 },
+      { type:'저녁', foods:'순두부찌개 + 현미밥 반공기 + 나물', kcal:480 },
+    ],
+  ];
+
+  // 외식 선택형 점심 (외식 많은 회원용)
+  const EATING_OUT_LUNCH = [
+    '🍱 외식: 닭가슴살 도시락 또는 샐러드 (단백질 먼저)',
+    '🍱 외식: 설렁탕 / 곰탕 (밥 반공기, 기름 걷어내기)',
+    '🍱 외식: 회덮밥 (밥 반공기) 또는 참치김밥',
+    '🍱 외식: 된장찌개 정식 (밥 반공기, 채소 반찬 위주)',
+    '🍱 외식: 닭갈비 (밥 반공기, 채소 함께)',
+    '🍱 외식: 샐러드 + 단백질 토핑 (그릭요거트 디저트)',
+    '🍱 외식: 쌀국수 (소고기 추가, 면 조금)',
+  ];
+
+  // 가족식사 저녁 (자유식 구조)
+  const FAMILY_DINNER = [
+    '🏠 가족식사 — 단백질 1가지 + 채소 2가지 + 밥 반공기 유지',
+    '🏠 가족식사 — 국물요리 시 건더기 위주 + 채소 추가',
+    '🏠 가족식사 — 볶음/구이류 + 밥 반공기 + 쌈채소',
+    '🏠 가족식사 — 찌개류 + 밥 반공기 + 나물 반찬',
+    '🏠 가족식사 — 생선구이 + 밥 반공기 + 채소 반찬 2종',
+    '🏠 가족식사 — 두부/달걀 요리 + 밥 반공기',
+    '🏠 가족식사 — 자유식 (단백질 필수 + 다음 끼니 굶지 않기)',
+  ];
+
+  return days.map((day, i) => {
+    let meals = BASE_TEMPLATES[i].map(m => ({ ...m }));
+
+    // 1. 간식 포함 여부
+    if (!meals4) {
+      meals = meals.filter(m => m.type !== '간식');
+    }
+    // 폭식 있는 경우 간식에 멘트 추가
+    if (hasBinge) {
+      const snack = meals.find(m => m.type === '간식');
+      if (snack) snack.foods = snack.foods + ' ✅ 폭식 예방 — 정해진 간식으로 배고픔 해결';
+    }
+
+    // 2. 외식 많은 회원 → 점심 외식 가이드로 교체 (화/목/토)
+    if (hasFreqEating && [1, 3, 5].includes(i)) {
+      const lunch = meals.find(m => m.type === '점심');
+      if (lunch) {
+        lunch.foods = EATING_OUT_LUNCH[i];
+        lunch.kcal = 520;
+      }
+    }
+
+    // 3. 가족식사 → 저녁 교체
+    if (hasFamilyDinner) {
+      const dinner = meals.find(m => m.type === '저녁');
+      if (dinner) {
+        dinner.foods = FAMILY_DINNER[i];
+        dinner.kcal = 500;
+      }
+    }
+
+    // 4. 야식 있는 회원 → 저녁에 멘트 추가
+    if (hasLateNight) {
+      const dinner = meals.find(m => m.type === '저녁');
+      if (dinner && !dinner.foods.includes('🏠')) {
+        dinner.foods = dinner.foods + ' 🌙 저녁 후 추가 섭취 금지';
+      }
+    }
+
+    // 5. 못 먹는 음식 / 알레르기 대체
+    meals = meals.map(m => ({
+      ...m,
+      foods: filterFood(m.foods, excludeKeywords),
+    }));
+
+    // 6. 칼로리 비율 스케일 조정
+    meals = scaleMeals(meals, targetCal, meals4);
+
+    return {
+      day,
+      meals,
+      total: meals.reduce((s, m) => s + m.kcal, 0),
+    };
+  });
+}
 // ──────────────────────────────────────────
 // UI 렌더링
 // ──────────────────────────────────────────
