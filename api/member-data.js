@@ -120,6 +120,15 @@ module.exports = async function handler(req, res) {
       직장형태: get('직장 형태'),
       프로그램: get('프로그램'),
       연락처: get('연락처'),
+      탄수화물유형:   get('탄수화물 유형'),
+      가공식품빈도:   get('가공식품 섭취 빈도'),
+      간식빈도:       get('간식 빈도'),
+      간식종류:       get('간식 종류'),
+      디저트빈도:     get('디저트 / 단 음식 빈도'),
+      끼니거르는빈도: get('끼니 거르는 빈도'),
+      과식빈도:       get('과식 빈도'),
+      야식시간대:     get('야식 시간대'),
+      배달음식빈도:   get('배달음식 빈도'),
     };
 
     return res.status(200).json({ data, surveyTitle: surveyPage.child_page?.title });
