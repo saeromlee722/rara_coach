@@ -946,14 +946,16 @@ async function saveToNotion() {
         }
       })
     });
-    const { success, pageId } = await res.json();
+   // 이렇게
+const { success, pageId, memberId: savedMemberId } = await res.json();
    // 수정
 if (success) {
   msg.textContent = '✅ 노션에 저장 완료!';
   btn.textContent = '저장 완료';
 
   // 회원용 읽기 링크 생성
-  const memberUrl = `https://rara-coach.vercel.app/member.html?memberId=${pageId}`;
+// 이렇게
+const memberUrl = `https://rara-coach.vercel.app/member.html?memberId=${savedMemberId}`;
   const linkEl = document.createElement('a');
   linkEl.href = memberUrl;
   linkEl.target = '_blank';
