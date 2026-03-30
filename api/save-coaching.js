@@ -51,7 +51,6 @@ function missionBullet(prefix, text) {
 
   if (urlMatch) {
     const url = urlMatch[1];
-    // 링크 앞 텍스트와 링크 텍스트 분리
     const parts = clean.split('👉');
     const before = (parts[0] || clean).trim();
     const linkLabel = parts[1] ? ('👉' + parts[1]).trim() : '▶ 영상 보기';
@@ -139,7 +138,12 @@ module.exports = async function handler(req, res) {
       callout(`목표 칼로리 ${calc.targetCal}kcal 기준 · 1-2주차, 3-4주차 반복`, '🍽'),
     ];
 
-    (mealPlan || []).forEach((day, i) => {
+    // ✅ 수정: mealPlan이 배열이든 객체든 배열로 변환
+    const mealPlanArray = Array.isArray(mealPlan)
+      ? mealPlan
+      : Object.values(mealPlan || {});
+
+    mealPlanArray.forEach((day, i) => {
       const dayTotal = day.total || (day.meals || []).reduce((s, m) => s + m.kcal, 0);
       const mealChildren = (day.meals || []).map(m =>
         bullet(`${m.type}: ${stripHtml(m.foods)}  (${m.kcal}kcal)`)
@@ -170,7 +174,6 @@ module.exports = async function handler(req, res) {
         const entry = w[dk] || '휴식';
         if (entry === '휴식') return bullet(`${dayLabels[di]}: 휴식`);
 
-        // entry 형식: "전신 타바타 31분||https://youtu.be/..."
         const parts = entry.split('||');
         const label = parts[0] || entry;
         const url   = parts[1];
