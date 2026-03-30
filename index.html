@@ -947,10 +947,20 @@ async function saveToNotion() {
       })
     });
     const { success, pageId } = await res.json();
-    if (success) {
-      msg.textContent = '✅ 노션에 저장 완료!';
-      btn.textContent = '저장 완료';
-    }
+   // 수정
+if (success) {
+  msg.textContent = '✅ 노션에 저장 완료!';
+  btn.textContent = '저장 완료';
+
+  // 회원용 읽기 링크 생성
+  const memberUrl = `https://rara-coach.vercel.app/member.html?memberId=${pageId}`;
+  const linkEl = document.createElement('a');
+  linkEl.href = memberUrl;
+  linkEl.target = '_blank';
+  linkEl.textContent = '📋 회원용 링크 열기';
+  linkEl.style.cssText = 'display:block; margin-top:10px; color:#e75480; font-weight:bold; text-decoration:underline;';
+  msg.after(linkEl);
+}
   } catch (e) {
     msg.textContent = '❌ 저장 실패: ' + e.message;
     btn.disabled = false;
