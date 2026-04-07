@@ -478,9 +478,20 @@ function calcAll(d) {
     d.폭식?.includes('자주') ||
     d.수면시간 === '5시간 미만';
 
-  // 최종 targetCal (하한선: BMR)
-  let targetCal = Math.max(Math.round(tdee + baseOffset + riskAdjust), bmr);
-
+   // 최종 targetCal — 적용 우선순위:
+  // 1) 기본 계산 → 2) 위험도 보정 → 3) BMR 하한선 → 4) 감량 최소선 상한
+  let targetCal = Math.round(tdee + baseOffset + riskAdjust);
+ 
+  // [3] BMR 하한선
+  targetCal = Math.max(targetCal, bmr);
+ 
+  // [4] 감량 최소선 제한 (NEW)
+  // 감량 목표일 때 아무리 위험도 보정해도 TDEE - 200 초과 금지
+  const MIN_DEFICIT = 200;
+  if (goalType === 'conservative_cut' || goalType === 'general_cut') {
+    targetCal = Math.min(targetCal, tdee - MIN_DEFICIT);
+  }
+ 
   // 탄단지 비율 선택 및 환산
   const macro   = selectMacroProfile(goalType, totalFactor, hormoneRisk, d);
   const protein = Math.round(targetCal * macro.protein / 4);
