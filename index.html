@@ -316,29 +316,7 @@
 // 운동 영상 DB
 // ──────────────────────────────────────────
 const VIDEOS = {
-  // ══════════════════════════════════════════════════════════════════════
-// index.html / member.html 수정 파일
-// 수정 1: calcAll targetCal 상한 규칙 명확화
-// 수정 2: index.html VIDEOS 객체에 실제 유튜브 링크 적용
-// ══════════════════════════════════════════════════════════════════════
 
-
-// ──────────────────────────────────────────────────────────────────────
-// [수정 1] calcAll 함수 내 targetCal 상한 규칙
-// index.html / member.html 둘 다 동일하게 적용
-//
-// 찾기:
-//   // [3] BMR 하한선
-//   targetCal = Math.max(targetCal, bmr);
-//
-//   // [4] 감량 최소선 제한 (NEW)
-//   // 감량 목표일 때 아무리 위험도 보정해도 TDEE - 200 초과 금지
-//   const MIN_DEFICIT = 200;
-//   if (goalType === 'conservative_cut' || goalType === 'general_cut') {
-//     targetCal = Math.min(targetCal, tdee - MIN_DEFICIT);
-//   }
-//
-// 교체:
 // ──────────────────────────────────────────────────────────────────────
 
   // [3] BMR 하한선
@@ -589,10 +567,17 @@ function calcAll(d) {
   // [3] BMR 하한선
   targetCal = Math.max(targetCal, bmr);
  
-  // [4] 목표별 상한선 제한
-체지방 감량 → Math.min(targetCal, tdee - 200)
-근육 성장   → Math.min(targetCal, tdee + 250)
-유지        → tdee ± 100 이내
+// [4] 목표별 상한선 제한
+  if (goalType === 'conservative_cut' || goalType === 'general_cut') {
+    targetCal = Math.min(targetCal, tdee - 200);
+  }
+  if (goalType === 'gain') {
+    targetCal = Math.min(targetCal, tdee + 250);
+  }
+  if (goalType === 'maintenance') {
+    targetCal = Math.min(targetCal, tdee + 100);
+    targetCal = Math.max(targetCal, tdee - 100);
+  }
  
   // 탄단지 비율 선택 및 환산
   const macro   = selectMacroProfile(goalType, totalFactor, hormoneRisk, d);
