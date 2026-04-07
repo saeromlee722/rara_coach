@@ -315,42 +315,6 @@
 // ──────────────────────────────────────────
 // 운동 영상 DB
 // ──────────────────────────────────────────
-const VIDEOS = {
-
-// ──────────────────────────────────────────────────────────────────────
-
-  // [3] BMR 하한선
-  targetCal = Math.max(targetCal, bmr);
-
-  // [4] 목표별 상한선 제한
-  // 체지방 감량: 절대로 TDEE 초과 불가, 최소 -200kcal 적자 유지
-  if (goalType === 'conservative_cut' || goalType === 'general_cut') {
-    targetCal = Math.min(targetCal, tdee - 200);
-  }
-  // 근육 성장: TDEE + 250 초과 불가
-  if (goalType === 'gain') {
-    targetCal = Math.min(targetCal, tdee + 250);
-  }
-  // 유지: TDEE ± 100 이내
-  if (goalType === 'maintenance') {
-    targetCal = Math.min(targetCal, tdee + 100);
-    targetCal = Math.max(targetCal, tdee - 100);
-  }
-
-
-// ──────────────────────────────────────────────────────────────────────
-// [수정 2] index.html VIDEOS 객체 교체
-// 기존: 모두 채널 URL (https://youtube.com/@rara.fit.official)
-// 수정: 개별 영상 URL로 교체
-//
-// 찾기:
-//   const VIDEOS = {
-//     D1:  { label: '전신 30분', type: 'tabata',   url: 'https://youtube.com/@rara.fit.official' },
-//     ...
-//   };
-//
-// 교체: 아래 전체로
-// ──────────────────────────────────────────────────────────────────────
 
 const VIDEOS = {
   D1:  { label: '전신 타바타 31분',   type: 'tabata',   url: 'https://youtu.be/BlUyoiw2qbM?si=P4Oe207xt4S8pEpW' },
