@@ -823,7 +823,7 @@ function toggleBlock(headEl) {
 function renderAll(d) {
   const calc = calcAll(d);
   const missions = generateMissions(d, calc);
-  const mealPlan = generateMealPlan(calc, d);
+  const mealPlan = generateWeekMeal(calc, d);
   const plan = WORKOUT_PLANS[calc.workoutLevel];
   const videoMap = buildVideoMap(d);
 
