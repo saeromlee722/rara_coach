@@ -93,7 +93,7 @@ module.exports = async function handler(req, res) {
     // ── 1. 칼로리 & 탄단지 ──────────────────
     const calcBlocks = [
       callout(
-        `🎯 목표 칼로리: ${calc.targetCal} kcal  |  회원 유형: ${calc.userType}  |  Safety Flag: ${calc.safetyFlag ? 'ON ⚠️' : 'OFF ✅'}`,
+        ``🎯 목표 칼로리: ${calc.targetCal} kcal  |  목표유형: ${calc.goalType}  |  탄단지: ${calc.macroLabel}  |  회원 유형: ${calc.userType}  |  Safety Flag: ${calc.safetyFlag ? 'ON ⚠️' : 'OFF ✅'}`,
         '📊'
       ),
       heading2('📊 칼로리 & 탄단지'),
