@@ -402,11 +402,10 @@ function calcAll(d) {
   // [3] BMR 하한선
   targetCal = Math.max(targetCal, bmr);
 
-  // [4] 감량 최소선 제한
-  const MIN_DEFICIT = 200;
-  if (goalType === 'conservative_cut' || goalType === 'general_cut') {
-    targetCal = Math.min(targetCal, tdee - MIN_DEFICIT);
-  }
+  // [4] 목표별 상한선 제한
+체지방 감량 → Math.min(targetCal, tdee - 200)
+근육 성장   → Math.min(targetCal, tdee + 250)
+유지        → tdee ± 100 이내
 
   // 탄단지 비율 선택 및 환산
   const macro   = selectMacroProfile(goalType, totalFactor, hormoneRisk, d);
