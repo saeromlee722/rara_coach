@@ -101,7 +101,7 @@ module.exports = async function handler(req, res) {
       bullet(`활동대사량 (TDEE): ${calc.tdee} kcal`),
       bullet(`목표 섭취 칼로리: ${calc.targetCal} kcal`),
       bullet(`단백질: ${calc.protein}g  |  탄수화물: ${calc.carb}g  |  지방: ${calc.fat}g`),
-      bullet(`활동계수: ${calc.totalFactor}  |  식습관 위험: ${calc.dietRisk}/8  |  회복 위험: ${calc.recoveryRisk}/6  |  호르몬 위험: ${calc.hormoneRisk}/4`),
+      bullet(`활동계수: ${calc.totalFactor}  |  식습관 위험: ${calc.dietRisk}/2  |  회복 위험: ${calc.recoveryRisk}/2  |  호르몬 위험: ${calc.hormoneRisk}/2  |  위험합계: ${calc.riskSum}/6  |  위험도 보정: +${calc.riskAdjust}kcal`),
       divider(),
     ];
 
