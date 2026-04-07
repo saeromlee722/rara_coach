@@ -824,7 +824,71 @@ function calcPortion(food, targetKcal) {
 // ══════════════════════════════════════════════════════════════════════
 
 // ── 메인: 주간 식단 생성 v2.0 ────────────────────────────────────────────
-function generateWeekMeal(calc, memberData) {
+function pickVeggieCombo(badWords, usedCombos) {
+  const available = VEGGIE_COMBOS.filter(c => {
+    const key = c.names.join(',');
+    if (usedCombos.has(key)) return false;
+    return !c.names.some(n => badWords.some(b => b && n.includes(b)));
+  });
+  const pool = available.length ? available : VEGGIE_COMBOS;
+  const combo = pool[Math.floor(Math.random() * pool.length)];
+  usedCombos.add(combo.names.join(','));
+  return combo;
+}
+
+function pickCarbFromPool(mealType, usedCarbsByMeal) {
+  const pool  = CARB_POOLS[mealType] || CARB_POOLS['아침'];
+  const limit = CARB_POOL_LIMIT[mealType] || 3;
+  const used  = usedCarbsByMeal[mealType] || [];
+  const available = pool.filter(c => used.filter(u => u === c).length < Math.ceil(7 / limit));
+  const chosen = available.length
+    ? available[Math.floor(Math.random() * available.length)]
+    : pool[Math.floor(Math.random() * pool.length)];
+  usedCarbsByMeal[mealType] = [...used, chosen];
+  return chosen;
+}
+
+function pickProteinFood(FOODS_DB, mealType, badWords, usedNames, seafoodCountRef) {
+  const isSeafoodAllowed = seafoodCountRef.count < MAX_SEAFOOD_PER_WEEK;
+  const candidates = FOODS_DB.filter(f => {
+    if (!f.meals?.includes(mealType)) return false;
+    const cat = (f.category || '').toLowerCase();
+    if (!cat.includes('단백') && !cat.includes('protein')) return false;
+    if (badWords.some(b => b && f.name?.includes(b))) return false;
+    const isSeafood = SEAFOOD_NAMES.some(s => f.name?.includes(s));
+    if (isSeafood && !isSeafoodAllowed) return false;
+    return true;
+  });
+  if (!candidates.length) return null;
+  const prioritized = candidates.filter(f =>
+    PRIORITY_PROTEINS.some(p => f.name?.includes(p)) && !usedNames.has(f.name)
+  );
+  const fallback = candidates.filter(f => !usedNames.has(f.name));
+  const pool = prioritized.length ? prioritized : fallback.length ? fallback : candidates;
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  if (chosen && SEAFOOD_NAMES.some(s => chosen.name?.includes(s))) seafoodCountRef.count++;
+  if (chosen) usedNames.add(chosen.name);
+  return chosen;
+}
+
+function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
+  const carbG    = Math.round(targetKcal * macroRatio.carb / 4);
+  const proteinG = Math.round(targetKcal * macroRatio.protein / 4);
+  const fatG     = Math.round(targetKcal * macroRatio.fat / 9);
+  return {
+    portions: [{
+      food: { name: '🍱 일반식', category: '일반식', kcal: 0, amount: 0 },
+      grams: 0, kcal: targetKcal, protein: proteinG, carb: carbG, fat: fatG,
+      role: '일반식', isGeneralMeal: true, guideText: GENERAL_MEAL_GUIDE,
+    }],
+    totalKcal: targetKcal,
+    isGeneralMeal: true,
+  };
+}
+  
+  
+  
+  function generateWeekMeal(calc, memberData) {
   const targetCal   = calc.targetCal;
   const macroRatio  = calc.macroRatio || { carb: 0.40, protein: 0.30, fat: 0.30 };
   const badWords    = [
