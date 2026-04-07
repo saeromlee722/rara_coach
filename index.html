@@ -463,9 +463,18 @@ function calcHormoneRisk(d) {
 // ── 4. 목표 유형 파싱 ─────────────────────────────────────────────────
 function parseGoalType(d) {
   const g = d.목표 || '';
-  if (g.includes('근육') || g.includes('증량'))                 return 'gain';
-  if (g.includes('유지'))                                        return 'maintenance';
+  const hasFatLoss = g.includes('체지방') || g.includes('감량') || g.includes('다이어트');
+  const hasMuscle  = g.includes('근육') || g.includes('증량');
+
+  // 체지방 감량 + 근육 증가 동시 → 보수감량 (체형 개선형)
+  if (hasFatLoss && hasMuscle) return 'conservative_cut';
+  // 순수 증량
+  if (hasMuscle)                return 'gain';
+  // 유지
+  if (g.includes('유지'))        return 'maintenance';
+  // 보수 감량
   if (g.includes('보수') || g.includes('천천히') || g.includes('서서히')) return 'conservative_cut';
+  // 기본 감량
   return 'general_cut';
 }
 
