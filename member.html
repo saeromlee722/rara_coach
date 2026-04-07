@@ -205,57 +205,193 @@
 // ──────────────────────────────────────────
 // 계산 엔진 (index.html과 동일)
 // ──────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+// 라라어트 계산 엔진 v2.0
+// 적용: 식단 칼로리 계산 규칙 v1.0
+// 수정 대상: index.html / member.html 의 calcBMR ~ calcAll 함수 블록 전체 교체
+// ══════════════════════════════════════════════════════════════════════
+
+// ── 1. BMR 계산 ───────────────────────────────────────────────────────
+// 인바디(Katch-McArdle) 우선, 없으면 Harris-Benedict
 function calcBMR(d) {
-  if (d.골격근량 && d.체지방량) { const ffm = d.현재체중 - d.체지방량; return Math.round(370 + 21.6 * ffm); }
-  if (d.성별 === '여성') return Math.round(10*d.현재체중 + 6.25*d.키 - 5*d.나이 - 161);
-  return Math.round(10*d.현재체중 + 6.25*d.키 - 5*d.나이 + 5);
+  if (d.골격근량 && d.체지방량) {
+    const ffm = d.현재체중 - d.체지방량;
+    return Math.round(370 + 21.6 * ffm);
+  }
+  if (d.성별 === '여성')
+    return Math.round(655.0955 + 9.5634 * d.현재체중 + 1.8496 * d.키 - 4.6756 * d.나이);
+  return Math.round(66.4730 + 13.7516 * d.현재체중 + 5.0033 * d.키 - 6.7550 * d.나이);
 }
-function calcBaseAF(d) {
-  const actMap = {'매우 적음 (주로 앉아서 생활)':1.20,'보통 (가끔 걷는 편)':1.35,'많은 편 (활동량 많음)':1.50};
+
+// ── 2. 활동계수 계산 ──────────────────────────────────────────────────
+// 평소활동량 + 걸음수/앉아있는시간 보정 + 운동 기여도(EA)
+// 최종 범위: 1.20 ~ 1.70
+function calcActivityFactor(d) {
+  const actMap = {
+    '매우 적음 (주로 앉아서 생활)': 1.20,
+    '보통 (가끔 걷는 편)':           1.35,
+    '많은 편 (활동량 많음)':          1.50,
+  };
   let af = actMap[d.평소활동량] || 1.30;
-  if (d.걸음수?.includes('3,000보 미만')) af -= 0.03;
+
+  if (d.걸음수?.includes('3,000보 미만'))                             af -= 0.03;
   else if (d.걸음수?.includes('8,000') || d.걸음수?.includes('10,000')) af += 0.05;
-  if (d.앉아있는시간?.includes('10시간')) af -= 0.02;
-  return Math.min(Math.max(af, 1.20), 1.70);
+  if (d.앉아있는시간?.includes('10시간'))                              af -= 0.02;
+
+  // 운동 기여도
+  if (d.운동여부 !== '안 함') {
+    const freqMap = { '주 1회': 1, '주 2회': 1, '주 3회': 2, '주 4회': 2, '주 5회 이상': 3 };
+    const durMap  = { '30분 이내': 1, '30~60분': 2, '60~90분': 3, '90분 이상': 3 };
+    const intMap  = { '가볍게 (땀 거의 안 남)': 1, '보통 (땀이 남)': 2, '강하게 (숨 많이 참)': 3 };
+    const score = (freqMap[d.운동빈도] || 0) + (durMap[d.운동시간] || 1) + (intMap[d.운동강도] || 1);
+    if      (score <= 2) af += 0;
+    else if (score <= 4) af += 0.05;
+    else if (score <= 6) af += 0.10;
+    else if (score <= 8) af += 0.15;
+    else                 af += 0.20;
+  }
+
+  return Math.min(Math.max(Math.round(af * 100) / 100, 1.20), 1.70);
 }
-function calcEA(d) {
-  const freqMap={'주 1회':1,'주 2회':1,'주 3회':2,'주 4회':2,'주 5회 이상':3};
-  const durMap={'30분 이내':1,'30~60분':2,'60~90분':3,'90분 이상':3};
-  const intMap={'가볍게 (땀 거의 안 남)':1,'보통 (땀이 남)':2,'강하게 (숨 많이 참)':3};
-  if (d.운동여부 === '안 함') return 0;
-  const score=(freqMap[d.운동빈도]||0)+(durMap[d.운동시간]||1)+(intMap[d.운동강도]||1);
-  if(score<=2)return 0;if(score<=4)return 0.05;if(score<=6)return 0.10;if(score<=8)return 0.15;return 0.20;
+
+// ── 3. 위험도 계산 (각 0~2 정규화) ──────────────────────────────────
+function calcDietRisk(d) {
+  let n = 0;
+  if (d.외식빈도?.includes('거의 매일') || d.외식빈도?.includes('주 4') || d.외식빈도?.includes('주 5')) n++;
+  if (d.폭식?.includes('자주') || d.폭식?.includes('가끔'))                                               n++;
+  if (d.야식 === '있음')                                                                                   n++;
+  if (d.식사규칙성?.includes('불규칙') || d.식사시간?.includes('불규칙'))                                  n++;
+  if (d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회'))                             n++;
+  return n <= 1 ? 0 : n === 2 ? 1 : 2;
 }
+
+function calcRecoveryRisk(d) {
+  let n = 0;
+  if (d.수면시간 === '5시간 미만' || d.수면시간 === '5~6시간') n++;
+  if (d.수면질 && d.수면질 <= 2)                               n++;
+  if (d.스트레스 && d.스트레스 >= 4)                           n++;
+  else if (d.스트레스 && d.스트레스 >= 3)                      n++;
+  if (d.피로도 && d.피로도 >= 4)                               n++;
+  return n <= 1 ? 0 : n === 2 ? 1 : 2;
+}
+
+function calcHormoneRisk(d) {
+  if (d.성별 !== '여성') return 0;
+  let n = 0;
+  if (d.PMS === '심한 편' || d.PMS === '약간 있음')             n++;
+  if (d.생리주기규칙성 === '불규칙')                             n++;
+  if (d.붓기?.includes('심'))                                    n++;
+  if (d.생리중운동 === '거의 불가능')                            n++;
+  if (d.저탄수반응?.includes('저하') || d.저탄수반응?.includes('힘듦')) n++;
+  return n <= 1 ? 0 : n === 2 ? 1 : 2;
+}
+
+// ── 4. 목표 유형 파싱 ─────────────────────────────────────────────────
+function parseGoalType(d) {
+  const g = d.목표 || '';
+  if (g.includes('근육') || g.includes('증량'))                 return 'gain';
+  if (g.includes('유지'))                                        return 'maintenance';
+  if (g.includes('보수') || g.includes('천천히') || g.includes('서서히')) return 'conservative_cut';
+  return 'general_cut';
+}
+
+// ── 5. 탄단지 비율 프로필 선택 ────────────────────────────────────────
+// 합계가 1.0이 되도록 fat을 조정
+function selectMacroProfile(goalType, af, hormoneRisk, d) {
+  if (goalType === 'gain')
+    return { carb: 0.475, protein: 0.275, fat: 0.25, label: '증량형' };
+  if (af >= 1.50 || d.운동빈도?.includes('주 4') || d.운동빈도?.includes('주 5'))
+    return { carb: 0.50,  protein: 0.30,  fat: 0.20, label: '운동수행형' };
+  if (hormoneRisk >= 2 || d.폭식?.includes('자주'))
+    return { carb: 0.375, protein: 0.30,  fat: 0.325, label: '호르몬민감형' };
+  return   { carb: 0.40,  protein: 0.30,  fat: 0.30,  label: '일반감량형' };
+}
+
+// ── 6. 끼니 분배 선택 ────────────────────────────────────────────────
+function selectMealDist(d) {
+  const binge    = d.폭식?.includes('자주') || d.폭식?.includes('가끔');
+  const lateNight = d.야식 === '있음';
+  const eatOut   = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('주 4') || d.외식빈도?.includes('거의 매일');
+  if (binge || lateNight)
+    return { type: '야식/폭식위험형', breakfast: 0.25, lunch: 0.30, snack: 0.10, dinner: 0.35 };
+  if (eatOut)
+    return { type: '외식포함형',      breakfast: 0.25, lunch: 0.40, dinner: 0.35 };
+  return           { type: '기본3끼',      meal1: 0.30,    meal2: 0.35,  meal3: 0.35 };
+}
+
+// ── 7. 메인 계산 함수 ─────────────────────────────────────────────────
 function calcAll(d) {
-  const bmr=calcBMR(d), baseAF=calcBaseAF(d), ea=calcEA(d);
-  const totalFactor=Math.min(Math.max(baseAF+ea,1.20),1.90);
-  const tdee=Math.round(bmr*totalFactor);
-  const recoveryRisk=(({'5시간 미만':2,'5~6시간':1,'6~7시간':1,'7~8시간':0,'8시간 이상':0})[d.수면시간]||0)+(d.수면질?Math.max(0,3-d.수면질):0)+(d.스트레스?Math.floor(d.스트레스/2):0);
-  let hormoneRisk=0;
-  if(d.성별==='여성'){if(d.생리주기규칙성==='불규칙')hormoneRisk++;if(d.PMS==='약간 있음')hormoneRisk++;if(d.PMS==='심한 편')hormoneRisk+=2;if(d.생리중운동==='거의 불가능')hormoneRisk++;}
-  let dietRisk=0;
-  if(d.폭식?.includes('자주'))dietRisk+=2;else if(d.폭식?.includes('가끔'))dietRisk++;
-  if(d.야식==='있음')dietRisk++;
-  if(d.외식빈도?.includes('거의 매일'))dietRisk+=2;else if(d.외식빈도?.includes('주 3'))dietRisk++;
-  if(d.단백질섭취빈도?.includes('거의'))dietRisk++;
-  if(d.채소섭취빈도?.includes('거의'))dietRisk++;
-  const safetyFlag=recoveryRisk>=4||hormoneRisk>=2||dietRisk>=4;
-  const goalType=d.목표?.includes('근육')?'muscle':'fat_loss';
-  let targetCal=goalType==='muscle'?tdee+200:tdee-(safetyFlag?250:350);
-  targetCal=Math.max(Math.round(targetCal),bmr);
-  const protein=Math.round(d.현재체중*(goalType==='muscle'?1.5:1.2));
-  const fat=Math.max(Math.round(targetCal*0.25/9),40);
-  const carb=Math.max(Math.round((targetCal-protein*4-fat*9)/4),100);
-  const proteinPct=Math.round(protein*4/targetCal*100);
-  const fatPct=Math.round(fat*9/targetCal*100);
-  const carbPct=100-proteinPct-fatPct;
-  const freqMap2={'주 1회':1,'주 2회':2,'주 3회':3,'주 4회':4,'주 5회 이상':5};
-  const freq=freqMap2[d.운동빈도]||0;
-  let workoutLevel='beginner';
-  if(d.운동여부==='안 함')workoutLevel='beginner';
-  else if(freq>=4)workoutLevel='advanced';
-  else if(freq>=2)workoutLevel='intermediate';
-  return {bmr,tdee,targetCal,totalFactor:totalFactor.toFixed(2),protein,fat,carb,proteinPct,fatPct,carbPct,safetyFlag,workoutLevel};
+  const bmr         = calcBMR(d);
+  const totalFactor = calcActivityFactor(d);
+  const tdee        = Math.round(bmr * totalFactor);
+
+  const dietRisk     = calcDietRisk(d);
+  const recoveryRisk = calcRecoveryRisk(d);
+  const hormoneRisk  = calcHormoneRisk(d);
+  const riskSum      = dietRisk + recoveryRisk + hormoneRisk;
+
+  const goalType = parseGoalType(d);
+
+  // 기본 적자/적립
+  const baseOffset = { conservative_cut: -350, general_cut: -550, maintenance: 0, gain: +200 }[goalType];
+
+  // 위험도 보정 (적자 완화 = kcal 환원)
+  let riskAdjust = 0;
+  if      (riskSum >= 4) riskAdjust += 200;
+  else if (riskSum >= 2) riskAdjust += 100;
+  if (dietRisk     >= 2) riskAdjust += 100;
+  if (recoveryRisk >= 2) riskAdjust += 100;
+  if (hormoneRisk  >= 2) riskAdjust += 100;
+
+  // safetyFlag: 공격 감량 금지 조건
+  const safetyFlag =
+    hormoneRisk >= 2 || recoveryRisk >= 2 ||
+    d.생리주기규칙성 === '불규칙' ||
+    d.폭식?.includes('자주') ||
+    d.수면시간 === '5시간 미만';
+
+  // 최종 targetCal (하한선: BMR)
+  let targetCal = Math.max(Math.round(tdee + baseOffset + riskAdjust), bmr);
+
+  // 탄단지 비율 선택 및 환산
+  const macro   = selectMacroProfile(goalType, totalFactor, hormoneRisk, d);
+  const protein = Math.round(targetCal * macro.protein / 4);
+  const fat     = Math.max(Math.round(targetCal * macro.fat / 9), 40);
+  const carb    = Math.max(Math.round(targetCal * macro.carb / 4), 50);
+
+  const proteinPct = Math.round(protein * 4 / targetCal * 100);
+  const fatPct     = Math.round(fat * 9    / targetCal * 100);
+  const carbPct    = 100 - proteinPct - fatPct;
+
+  // 운동 레벨
+  const freqMap2 = { '주 1회': 1, '주 2회': 2, '주 3회': 3, '주 4회': 4, '주 5회 이상': 5 };
+  const freq = freqMap2[d.운동빈도] || 0;
+  let workoutLevel = 'beginner';
+  if (d.운동여부 === '안 함') workoutLevel = 'beginner';
+  else if (freq >= 4)         workoutLevel = 'advanced';
+  else if (freq >= 2)         workoutLevel = 'intermediate';
+
+  // 회원 유형
+  let userType = '균형형';
+  if      (dietRisk >= 2 && freq <= 1) userType = '저활동-식습관위험형';
+  else if (freq >= 3 && dietRisk >= 1) userType = '운동하지만정체형';
+  else if (recoveryRisk >= 2)          userType = '생활리듬붕괴형';
+  else if (hormoneRisk >= 2)           userType = '호르몬민감형';
+  else if (goalType === 'gain')        userType = '체형개선형';
+
+  const mealDist = selectMealDist(d);
+
+  return {
+    bmr, tdee, targetCal,
+    totalFactor: totalFactor.toFixed(2),
+    protein, fat, carb,
+    proteinPct, fatPct, carbPct,
+    dietRisk, recoveryRisk, hormoneRisk, riskSum,
+    riskAdjust, safetyFlag,
+    goalType, macroLabel: macro.label,
+    workoutLevel, userType,
+    mealDist,
+  };
 }
 
 // ──────────────────────────────────────────
@@ -477,7 +613,7 @@ function renderAll(d) {
       <span><span class="dot" style="background:#F4C0D1"></span>탄수화물 ${calc.carb}g (${calc.carbPct}%)</span>
       <span><span class="dot" style="background:#FAC775"></span>지방 ${calc.fat}g (${calc.fatPct}%)</span>
     </div>
-    <div style="margin-top:10px;font-size:12px;color:var(--text3);">활동계수 ${calc.totalFactor} · ${calc.safetyFlag?'⚠️ 안전 모드 적용 (적자 완화)':''}</div>`;
+    <div style="margin-top:10px;font-size:12px;color:var(--text3);">활동계수 ${calc.totalFactor} · 위험합계 ${calc.riskSum}/6 · 보정 +${calc.riskAdjust}kcal · ${calc.safetyFlag?'⚠️ Safety Flag ON':'Safety Flag OFF'} · ${calc.userType} · ${calc.macroLabel}</div>`;
 
   // 미션
   const weeks=['week1','week2','week3','week4'];
