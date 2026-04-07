@@ -476,39 +476,281 @@ function scaleMeals(meals,targetCal){
   const scale=targetCal/base;
   return meals.map(m=>({...m,kcal:Math.round(m.kcal*scale),foods:m.foods+(scale<0.85&&(m.type==='점심'||m.type==='저녁')?' (소량)':scale>1.15&&(m.type==='점심'||m.type==='저녁')?' (넉넉히)':'')}));
 }
-function generateMealPlan(calc,d){
-  const targetCal=calc.targetCal;
-  const excRaw=[(d.싫어하는음식||''),(d.알레르기||''),(d.소화불편음식||'')].join(' ');
-  const exKw=Object.keys(FOOD_SUBSTITUTE).filter(k=>excRaw.includes(k));
-  const hasFreqEating=d.외식빈도?.includes('주 3')||d.외식빈도?.includes('매일');
-  const hasFamilyDinner=d.가족식사==='예'||d.가족식사?.includes('가족');
-  const hasBinge=d.폭식?.includes('자주')||d.폭식?.includes('가끔');
-  const hasLateNight=d.야식==='있음';
-  const meals4=d.식사횟수!=='3끼'||hasBinge;
-  const BASE=[
-    [{type:'아침',foods:'그릭요거트 + 바나나 1/2 + 견과류',kcal:320},{type:'점심',foods:'현미밥 반공기 + 닭가슴살 + 된장국 + 나물 2종',kcal:530},{type:'간식',foods:'삶은 달걀 1개 + 방울토마토',kcal:120},{type:'저녁',foods:'두부구이 + 샐러드 + 고구마 100g',kcal:480}],
-    [{type:'아침',foods:'오트밀 + 달걀 스크램블 + 블루베리',kcal:350},{type:'점심',foods:'잡곡밥 반공기 + 연어구이 + 미역국 + 채소볶음',kcal:560},{type:'간식',foods:'단백질 쉐이크 또는 두유',kcal:100},{type:'저녁',foods:'닭안심 볶음 + 브로콜리 + 현미밥 반공기',kcal:490}],
-    [{type:'아침',foods:'삶은 달걀 2개 + 통밀식빵 1장 + 아보카도',kcal:380},{type:'점심',foods:'닭가슴살 샐러드 + 고구마 + 견과류',kcal:510},{type:'간식',foods:'그릭요거트 + 블루베리',kcal:130},{type:'저녁',foods:'소고기 구이 + 현미밥 반공기 + 쌈채소',kcal:530}],
-    [{type:'아침',foods:'프로틴 쉐이크 + 바나나',kcal:300},{type:'점심',foods:'비빔밥 (밥 반공기) + 계란후라이 + 채소 듬뿍',kcal:540},{type:'간식',foods:'치즈 1장 + 오이 1/2개',kcal:100},{type:'저녁',foods:'연두부 + 참치 + 방울토마토 + 고구마',kcal:480}],
-    [{type:'아침',foods:'달걀 오믈렛 + 통밀식빵 + 토마토',kcal:360},{type:'점심',foods:'현미밥 반공기 + 제육볶음 (기름 적게) + 나물',kcal:550},{type:'간식',foods:'아몬드 한 줌 + 사과 반개',kcal:140},{type:'저녁',foods:'닭가슴살 + 채소 수프 + 고구마 80g',kcal:440}],
-    [{type:'아침',foods:'그릭요거트 파르페 + 그래놀라 조금',kcal:340},{type:'점심',foods:'현미밥 반공기 + 생선구이 + 된장찌개 + 나물',kcal:530},{type:'간식',foods:'삶은 달걀 1개 + 오이',kcal:90},{type:'저녁',foods:'두부 김치볶음 + 잡곡밥 반공기',kcal:490}],
-    [{type:'아침',foods:'단백질 팬케이크 (귀리+달걀) + 딸기',kcal:370},{type:'점심',foods:'닭가슴살 볶음밥 (현미) + 계란 + 채소',kcal:540},{type:'간식',foods:'프로틴 바 또는 견과류',kcal:120},{type:'저녁',foods:'순두부찌개 + 현미밥 반공기 + 나물',kcal:480}],
-  ];
-  const EOUT=['🍱 외식: 닭가슴살 도시락 또는 샐러드','🍱 외식: 설렁탕 / 곰탕 (밥 반공기)','🍱 외식: 회덮밥 (밥 반공기) 또는 참치김밥','🍱 외식: 된장찌개 정식 (밥 반공기)','🍱 외식: 닭갈비 (밥 반공기, 채소 함께)','🍱 외식: 샐러드 + 단백질 토핑','🍱 외식: 쌀국수 (소고기 추가, 면 조금)'];
-  const FAMILY=['🏠 가족식사 — 단백질 1가지 + 채소 2가지 + 밥 반공기 유지','🏠 가족식사 — 국물요리 시 건더기 위주 + 채소 추가','🏠 가족식사 — 볶음/구이류 + 밥 반공기 + 쌈채소','🏠 가족식사 — 찌개류 + 밥 반공기 + 나물 반찬','🏠 가족식사 — 생선구이 + 밥 반공기 + 채소 반찬 2종','🏠 가족식사 — 두부/달걀 요리 + 밥 반공기','🏠 가족식사 — 자유식 (단백질 필수 + 다음 끼니 굶지 않기)'];
-  return ['월','화','수','목','금','토','일'].map((day,i)=>{
-    let meals=BASE[i].map(m=>({...m}));
-    if(!meals4)meals=meals.filter(m=>m.type!=='간식');
-    if(hasBinge){const s=meals.find(m=>m.type==='간식');if(s)s.foods+=` ✅ 폭식 예방`;}
-    if(hasFreqEating&&[1,3,5].includes(i)){const l=meals.find(m=>m.type==='점심');if(l){l.foods=EOUT[i];l.kcal=520;}}
-    if(hasFamilyDinner){const dn=meals.find(m=>m.type==='저녁');if(dn){dn.foods=FAMILY[i];dn.kcal=500;}}
-    if(hasLateNight){const dn=meals.find(m=>m.type==='저녁');if(dn&&!dn.foods.includes('🏠'))dn.foods+=` 🌙 저녁 후 추가 섭취 금지`;}
-    meals=meals.map(m=>({...m,foods:filterFood(m.foods,exKw)}));
-    meals=scaleMeals(meals,targetCal);
-    return{day,meals,total:meals.reduce((s,m)=>s+m.kcal,0)};
+// ══════════════════════════════════════════════════════════════════════
+// 식단 생성 모듈 v2.0 — 식재료 구성 규칙 v1.0 적용
+//
+// 적용 파일: index.html / member.html
+// 교체 범위: PRIORITY_PROTEINS 상수 ~ generateWeekMeal 함수 끝까지
+//            (기존 FOOD_SUBSTITUTE, filterFood, scaleMeals 는 유지)
+// ══════════════════════════════════════════════════════════════════════
+
+// ── 규칙 1: 탄수화물 끼니별 허용 풀 ────────────────────────────────────
+// 아침 2~3종, 점심 1종 고정, 저녁 2종 이내
+const CARB_POOLS = {
+  아침: ['오트밀', '고구마', '바나나', '통밀식빵', '귀리'],
+  점심: ['현미밥'],          // 고정 1종
+  저녁: ['현미밥', '고구마'],
+  간식: ['바나나', '고구마'],
+};
+const CARB_POOL_LIMIT = { 아침: 3, 점심: 1, 저녁: 2, 간식: 2 };
+
+// ── 규칙 2: 단백질 우선순위 + 해산물 제한 ──────────────────────────────
+const PRIORITY_PROTEINS = ['닭가슴살', '닭안심', '돼지안심', '소고기우둔살', '틸라피아', '두부', '계란'];
+const SEAFOOD_NAMES     = ['연어', '새우', '오징어', '조개', '고등어', '대구', '명태', '갈치', '광어'];
+const MAX_SEAFOOD_PER_WEEK = 2;
+
+// ── 규칙 3: 야채 조합 프리셋 (2~3종) ────────────────────────────────────
+const VEGGIE_COMBOS = [
+  { names: ['양배추', '양파', '오이'],        kcalPer100: 28,  protein: 1.5, carb: 5.5, fat: 0.2 },
+  { names: ['브로콜리', '버섯', '파프리카'],   kcalPer100: 32,  protein: 2.8, carb: 5.5, fat: 0.4 },
+  { names: ['시금치', '애호박', '당근'],       kcalPer100: 30,  protein: 2.0, carb: 5.8, fat: 0.3 },
+  { names: ['깻잎', '상추', '오이'],           kcalPer100: 22,  protein: 1.8, carb: 4.0, fat: 0.2 },
+  { names: ['방울토마토', '오이', '양상추'],   kcalPer100: 24,  protein: 1.2, carb: 4.8, fat: 0.2 },
+  { names: ['브로콜리', '당근', '양파'],       kcalPer100: 35,  protein: 2.2, carb: 6.5, fat: 0.3 },
+  { names: ['시금치', '버섯', '파프리카'],     kcalPer100: 28,  protein: 2.5, carb: 5.0, fat: 0.3 },
+];
+
+// ── 규칙 4: 일반식 가이드 (하단 고정 노출) ──────────────────────────────
+const GENERAL_MEAL_GUIDE = `🍱 일반식 선택 가이드
+• 서브웨이 15cm 터키/치킨: 약 350~380kcal, 단백질 25~30g (소스는 머스타드·식초만)
+• 그릭 샐러드 + 닭가슴살 토핑: 약 380~430kcal, 단백질 35~40g
+• 포케 볼 (연어/참치, 밥 반공기): 약 480~560kcal, 단백질 28~35g
+• 한식 도시락 (닭가슴살 + 현미밥 + 나물 2종): 약 480~530kcal, 단백질 35~40g
+• 순두부찌개 + 밥 반공기: 약 380~430kcal, 단백질 20~25g
+📱 칼로리 확인: 칼로리코치 앱 / 다이어트신(dietshin.com) / 식품안전나라`;
+
+// ── 내부 유틸: 야채 조합 선택 ────────────────────────────────────────────
+function pickVeggieCombo(badWords, usedCombos) {
+  const available = VEGGIE_COMBOS.filter(c => {
+    const key = c.names.join(',');
+    if (usedCombos.has(key)) return false;
+    return !c.names.some(n => badWords.some(b => b && n.includes(b)));
   });
+  const pool = available.length ? available : VEGGIE_COMBOS;
+  const combo = pool[Math.floor(Math.random() * pool.length)];
+  usedCombos.add(combo.names.join(','));
+  return combo;
 }
 
+// ── 내부 유틸: 탄수 선택 (끼니별 풀 + 7일 반복 제한) ─────────────────────
+function pickCarbFromPool(mealType, usedCarbsByMeal) {
+  const pool  = CARB_POOLS[mealType] || CARB_POOLS['아침'];
+  const limit = CARB_POOL_LIMIT[mealType] || 3;
+  const used  = usedCarbsByMeal[mealType] || [];
+
+  // 사용 횟수가 limit 이내인 것 우선; 초과하면 pool 전체에서 랜덤
+  const available = pool.filter(c => used.filter(u => u === c).length < Math.ceil(7 / limit));
+  const chosen = available.length
+    ? available[Math.floor(Math.random() * available.length)]
+    : pool[Math.floor(Math.random() * pool.length)];
+
+  usedCarbsByMeal[mealType] = [...used, chosen];
+  return chosen;
+}
+
+// ── 내부 유틸: 단백질 선택 (우선순위 + 해산물 제한) ──────────────────────
+function pickProteinFood(FOODS_DB, mealType, badWords, usedNames, seafoodCountRef) {
+  const isSeafoodAllowed = seafoodCountRef.count < MAX_SEAFOOD_PER_WEEK;
+
+  // 1) FOODS_DB에서 단백질 카테고리 후보 추출
+  const candidates = FOODS_DB.filter(f => {
+    if (!f.meals?.includes(mealType)) return false;
+    const cat = (f.category || '').toLowerCase();
+    if (!cat.includes('단백') && !cat.includes('protein')) return false;
+    if (badWords.some(b => b && f.name?.includes(b))) return false;
+
+    const isSeafood = SEAFOOD_NAMES.some(s => f.name?.includes(s));
+    if (isSeafood && !isSeafoodAllowed) return false;
+    return true;
+  });
+
+  if (!candidates.length) return null;
+
+  // 2) 우선순위 단백질 먼저 시도 (아직 덜 쓴 것)
+  const prioritized = candidates.filter(f =>
+    PRIORITY_PROTEINS.some(p => f.name?.includes(p)) && !usedNames.has(f.name)
+  );
+  const fallback = candidates.filter(f => !usedNames.has(f.name));
+  const pool = prioritized.length ? prioritized : fallback.length ? fallback : candidates;
+
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+
+  // 해산물이면 카운터 증가
+  if (chosen && SEAFOOD_NAMES.some(s => chosen.name?.includes(s))) {
+    seafoodCountRef.count++;
+  }
+  if (chosen) usedNames.add(chosen.name);
+  return chosen;
+}
+
+// ── 일반식 슬롯 생성 ──────────────────────────────────────────────────────
+function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
+  const carbG    = Math.round(targetKcal * macroRatio.carb / 4);
+  const proteinG = Math.round(targetKcal * macroRatio.protein / 4);
+  const fatG     = Math.round(targetKcal * macroRatio.fat / 9);
+  return {
+    portions: [{
+      food:      { name: '🍱 일반식', category: '일반식', kcal: 0, amount: 0 },
+      grams:     0,
+      kcal:      targetKcal,
+      protein:   proteinG,
+      carb:      carbG,
+      fat:       fatG,
+      role:      '일반식',
+      isGeneralMeal: true,
+      guideText: GENERAL_MEAL_GUIDE,
+    }],
+    totalKcal:     targetKcal,
+    isGeneralMeal: true,
+  };
+}
+
+// ── 메인: 주간 식단 생성 v2.0 ────────────────────────────────────────────
+function generateWeekMeal(calc, memberData) {
+  const targetCal   = calc.targetCal;
+  const macroRatio  = calc.macroRatio || { carb: 0.40, protein: 0.30, fat: 0.30 };
+  const badWords    = [
+    ...(memberData.싫어하는음식 || '').split(/[,，\s]+/),
+    ...((memberData.알레르기 || '') !== '없음'
+      ? (memberData.알레르기 || '').split(/[,，\s]+/) : [])
+  ].filter(Boolean);
+
+  const 식사횟수  = memberData.식사횟수 || '3끼';
+  const mealTypes = 식사횟수 === '4끼 이상'
+    ? ['아침', '점심', '간식', '저녁']
+    : ['아침', '점심', '저녁'];
+
+  // 일반식 슬롯 적용 조건
+  const eatOutFreq   = memberData.외식빈도 || '';
+  const hasFamilyMeal = (memberData.가족식사 === '예') || (memberData.가족식사 || '').includes('가족');
+  const needsLunchSlot  = eatOutFreq.includes('주 3') || eatOutFreq.includes('주 4')
+                        || eatOutFreq.includes('주 5') || eatOutFreq.includes('매일');
+  const needsDinnerSlot = hasFamilyMeal;
+
+  // 추적 변수
+  const usedCarbsByMeal = { 아침: [], 점심: [], 저녁: [], 간식: [] };
+  const seafoodCountRef = { count: 0 };
+  const usedCombos      = new Set();
+  const usedNames       = new Set();
+
+  const MEAL_RATIO_MAP = {
+    아침: 0.30, 점심: 0.35, 저녁: 0.35, 간식: 0.10,
+  };
+
+  const days    = ['월', '화', '수', '목', '금', '토', '일'];
+  const weekPlan = [];
+
+  for (let di = 0; di < 7; di++) {
+    const dayMeals = {};
+
+    for (const mt of mealTypes) {
+      const mealKcal = Math.round(targetCal * (MEAL_RATIO_MAP[mt] || 0.30));
+
+      // ── 규칙 4: 일반식 슬롯 처리 ────────────────────────────────
+      if (mt === '점심' && needsLunchSlot && di % 2 === 0) {
+        // 격일로 일반식 슬롯 배치 (주 3~4회 외식 빈도에 맞게)
+        dayMeals[mt] = makeGeneralMealSlot(mt, mealKcal, macroRatio);
+        continue;
+      }
+      if (mt === '저녁' && needsDinnerSlot && di % 2 === 1) {
+        dayMeals[mt] = makeGeneralMealSlot(mt, mealKcal, macroRatio);
+        continue;
+      }
+
+      // ── 일반 슬롯 조립 ──────────────────────────────────────────
+      const portions = [];
+
+      // 탄수화물 슬롯
+      const carbKcal  = Math.round(mealKcal * macroRatio.carb);
+      const carbName  = pickCarbFromPool(mt, usedCarbsByMeal);
+      const carbFood  = (typeof FOODS_DB !== 'undefined')
+        ? FOODS_DB.find(f => f.name?.includes(carbName) && f.meals?.includes(mt))
+        : null;
+
+      if (carbFood) {
+        const r = carbKcal / carbFood.kcal;
+        const g = Math.min(Math.max(Math.round(r * carbFood.amount / 10) * 10, 30), 250);
+        const scale = g / carbFood.amount;
+        portions.push({
+          food: carbFood, grams: g, role: '탄수화물',
+          kcal:    Math.round(carbFood.kcal    * scale),
+          protein: Math.round(carbFood.protein * scale * 10) / 10,
+          carb:    Math.round(carbFood.carb    * scale * 10) / 10,
+          fat:     Math.round(carbFood.fat     * scale * 10) / 10,
+        });
+      } else {
+        // FOODS_DB 미로드 시 텍스트 fallback
+        portions.push({
+          food: { name: carbName }, grams: 130, role: '탄수화물',
+          kcal: carbKcal,
+          protein: Math.round(carbKcal * 0.07 / 4),
+          carb:    Math.round(carbKcal * 0.85 / 4),
+          fat:     Math.round(carbKcal * 0.01 / 9),
+        });
+      }
+
+      // 단백질 슬롯
+      const proteinKcal = Math.round(mealKcal * macroRatio.protein);
+      const proteinFood = (typeof FOODS_DB !== 'undefined')
+        ? pickProteinFood(FOODS_DB, mt, badWords, usedNames, seafoodCountRef)
+        : null;
+
+      if (proteinFood) {
+        const r = proteinKcal / proteinFood.kcal;
+        const g = Math.min(Math.max(Math.round(r * proteinFood.amount / 10) * 10, 50), 200);
+        const scale = g / proteinFood.amount;
+        portions.push({
+          food: proteinFood, grams: g, role: '단백질',
+          kcal:    Math.round(proteinFood.kcal    * scale),
+          protein: Math.round(proteinFood.protein * scale * 10) / 10,
+          carb:    Math.round(proteinFood.carb    * scale * 10) / 10,
+          fat:     Math.round(proteinFood.fat     * scale * 10) / 10,
+        });
+      } else {
+        const fallbackProteins = PRIORITY_PROTEINS.filter(p =>
+          !usedNames.has(p) && !badWords.some(b => b && p.includes(b))
+        );
+        const pName = fallbackProteins[di % fallbackProteins.length] || '닭가슴살';
+        usedNames.add(pName);
+        portions.push({
+          food: { name: pName }, grams: 100, role: '단백질',
+          kcal:    proteinKcal,
+          protein: Math.round(proteinKcal * 0.85 / 4),
+          carb:    2, fat: Math.round(proteinKcal * 0.05 / 9),
+        });
+      }
+
+      // 야채 슬롯 (2~3종 조합, 규칙 3)
+      const veggieKcal  = mealKcal - portions.reduce((s, p) => s + p.kcal, 0);
+      const veggieCombo = pickVeggieCombo(badWords, usedCombos);
+      const veggieLabel = veggieCombo.names.join(' + ');
+      const veggieG     = Math.min(Math.max(Math.round(veggieKcal / veggieCombo.kcalPer100 * 100), 100), 250);
+      const vScale      = veggieG / 100;
+      portions.push({
+        food: { name: veggieLabel, category: '야채' },
+        grams:   veggieG,
+        role:    '야채',
+        kcal:    Math.round(veggieCombo.kcalPer100 * vScale),
+        protein: Math.round(veggieCombo.protein    * vScale * 10) / 10,
+        carb:    Math.round(veggieCombo.carb       * vScale * 10) / 10,
+        fat:     Math.round(veggieCombo.fat        * vScale * 10) / 10,
+      });
+
+      const totalKcal = portions.reduce((s, p) => s + p.kcal, 0);
+      dayMeals[mt] = { portions, totalKcal };
+    }
+
+    weekPlan.push({ day: days[di], dayIndex: di + 1, meals: dayMeals, mealTypes });
+  }
+
+  return {
+    weekPlan,
+    mealTypes,
+    targetCal,
+    generalMealGuide: GENERAL_MEAL_GUIDE,
+    hasGeneralMealSlots: needsLunchSlot || needsDinnerSlot,
+  };
+}
 // ──────────────────────────────────────────
 // 운동 플랜
 // ──────────────────────────────────────────
