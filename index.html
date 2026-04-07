@@ -824,7 +824,41 @@ function calcPortion(food, targetKcal) {
 // ══════════════════════════════════════════════════════════════════════
 
 // ── 메인: 주간 식단 생성 v2.0 ────────────────────────────────────────────
-function pickVeggieCombo(badWords, usedCombos) {
+// ── 규칙 1: 탄수화물 끼니별 허용 풀 ──
+const CARB_POOLS = {
+  아침: ['오트밀', '고구마', '바나나', '통밀식빵', '귀리'],
+  점심: ['현미밥'],
+  저녁: ['현미밥', '고구마'],
+  간식: ['바나나', '고구마'],
+};
+const CARB_POOL_LIMIT = { 아침: 3, 점심: 1, 저녁: 2, 간식: 2 };
+
+// ── 규칙 2: 단백질 우선순위 + 해산물 제한 ──
+const PRIORITY_PROTEINS = ['닭가슴살', '닭안심', '돼지안심', '소고기우둔살', '틸라피아', '두부', '계란'];
+const SEAFOOD_NAMES = ['연어', '새우', '오징어', '조개', '고등어', '대구', '명태', '갈치', '광어'];
+const MAX_SEAFOOD_PER_WEEK = 2;
+
+// ── 규칙 3: 야채 조합 프리셋 ──
+const VEGGIE_COMBOS = [
+  { names: ['양배추', '양파', '오이'],       kcalPer100: 28,  protein: 1.5, carb: 5.5, fat: 0.2 },
+  { names: ['브로콜리', '버섯', '파프리카'],  kcalPer100: 32,  protein: 2.8, carb: 5.5, fat: 0.4 },
+  { names: ['시금치', '애호박', '당근'],      kcalPer100: 30,  protein: 2.0, carb: 5.8, fat: 0.3 },
+  { names: ['깻잎', '상추', '오이'],          kcalPer100: 22,  protein: 1.8, carb: 4.0, fat: 0.2 },
+  { names: ['방울토마토', '오이', '양상추'],  kcalPer100: 24,  protein: 1.2, carb: 4.8, fat: 0.2 },
+  { names: ['브로콜리', '당근', '양파'],      kcalPer100: 35,  protein: 2.2, carb: 6.5, fat: 0.3 },
+  { names: ['시금치', '버섯', '파프리카'],    kcalPer100: 28,  protein: 2.5, carb: 5.0, fat: 0.3 },
+];
+
+// ── 규칙 4: 일반식 가이드 ──
+const GENERAL_MEAL_GUIDE = `🍱 일반식 선택 가이드
+- 서브웨이 15cm 터키/치킨: 약 350~380kcal, 단백질 25~30g (소스는 머스타드·식초만)
+- 그릭 샐러드 + 닭가슴살 토핑: 약 380~430kcal, 단백질 35~40g
+- 포케 볼 (연어/참치, 밥 반공기): 약 480~560kcal, 단백질 28~35g
+- 한식 도시락 (닭가슴살 + 현미밥 + 나물 2종): 약 480~530kcal, 단백질 35~40g
+- 순두부찌개 + 밥 반공기: 약 380~430kcal, 단백질 20~25g
+📱 칼로리 확인: 칼로리코치 앱 / 다이어트신(dietshin.com) / 식품안전나라`;
+  
+  function pickVeggieCombo(badWords, usedCombos) {
   const available = VEGGIE_COMBOS.filter(c => {
     const key = c.names.join(',');
     if (usedCombos.has(key)) return false;
