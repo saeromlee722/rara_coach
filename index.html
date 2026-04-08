@@ -29,15 +29,12 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Noto Sans KR', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
 
-  /* HEADER */
   header { background: white; border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--text); font-style: italic; }
   .logo span { font-style: normal; font-size: 11px; color: var(--text3); display: block; letter-spacing: 0.1em; }
 
-  /* LAYOUT */
   .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
 
-  /* MEMBER SELECT */
   .select-section { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
   .select-label { font-size: 12px; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 10px; }
   .member-select { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Noto Sans KR', sans-serif; font-size: 14px; color: var(--text); appearance: none; background: var(--cream) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A8927F' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center; cursor: pointer; }
@@ -45,20 +42,15 @@
   .btn-load { margin-top: 12px; background: var(--text); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-family: 'Noto Sans KR', sans-serif; font-size: 13px; cursor: pointer; transition: background 0.2s; }
   .btn-load:hover { background: var(--pink); }
 
-  /* LOADING */
   .loading { text-align: center; padding: 48px; color: var(--text3); font-size: 14px; display: none; }
-
-  /* RESULT AREA */
   #result-area { display: none; }
 
-  /* TABS */
   .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .tab { padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border); background: white; color: var(--text2); font-size: 13px; cursor: pointer; transition: all 0.2s; }
   .tab.on { background: var(--pink); color: white; border-color: var(--pink); font-weight: 500; }
   .tab-content { display: none; }
   .tab-content.on { display: block; }
 
-  /* CARDS */
   .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
   .card-title { font-size: 11px; letter-spacing: 0.12em; color: var(--text3); margin-bottom: 14px; font-weight: 500; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -70,7 +62,6 @@
   .metric-val span { font-size: 12px; color: var(--text3); font-weight: 400; }
   .metric-val.highlight { color: var(--pink); }
 
-  /* MACRO BAR */
   .macro-bar { height: 8px; border-radius: 4px; overflow: hidden; background: var(--border); display: flex; margin: 10px 0 6px; }
   .bar-p { background: var(--pink); }
   .bar-c { background: #F4C0D1; }
@@ -78,14 +69,12 @@
   .macro-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text2); flex-wrap: wrap; }
   .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
 
-  /* RISK BADGES */
   .risk-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
   .badge { font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 500; }
   .badge-red { background: var(--red-bg); color: var(--red); }
   .badge-green { background: var(--green-bg); color: var(--green); }
   .badge-amber { background: var(--amber-bg); color: var(--amber); }
 
-  /* MISSION */
   .week-block { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
   .week-header { background: var(--pink-light); padding: 10px 16px; display: flex; justify-content: space-between; }
   .week-num { font-weight: 500; font-size: 14px; color: var(--pink-dark); }
@@ -98,7 +87,6 @@
   .mbadge-df { background: var(--green-bg); color: var(--green); }
   .mission-txt { font-size: 13px; color: var(--text); line-height: 1.5; }
 
-  /* MEAL */
   .day-block { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
   .day-header { background: var(--cream); padding: 8px 16px; display: flex; justify-content: space-between; }
   .day-title { font-weight: 500; font-size: 14px; }
@@ -107,14 +95,12 @@
   .meal-type { color: var(--text3); font-size: 12px; }
   .meal-kcal { color: var(--pink); font-size: 12px; }
   .meal-foods { color: var(--text); }
-  /* 편집 가능 */
   .editable { outline: none; border-bottom: 1px dashed var(--border); min-width: 40px; padding: 2px 4px; border-radius: 4px; }
   .editable:focus { border-bottom-color: var(--pink); background: var(--pink-light); }
   .free-box { background: var(--amber-bg); border: 1px solid #FAC775; border-radius: 10px; padding: 14px 16px; margin-top: 6px; }
   .free-title { font-size: 13px; font-weight: 500; color: var(--amber); margin-bottom: 8px; }
   .free-list { font-size: 12px; color: #633806; line-height: 2; }
 
-  /* WORKOUT TABLE */
   .workout-table { width: 100%; border-collapse: collapse; font-size: 12px; overflow-x: auto; }
   .workout-table th { background: var(--cream); padding: 8px 6px; text-align: center; font-size: 11px; color: var(--text3); border: 1px solid var(--border); font-weight: 500; }
   .workout-table td { padding: 7px 5px; text-align: center; border: 1px solid var(--border); vertical-align: middle; line-height: 1.5; }
@@ -129,21 +115,18 @@
   .wt-rest { color: var(--text3); }
   .day-sub { font-size: 10px; color: var(--text3); display: block; }
 
-  /* SAVE BUTTON */
   .save-bar { position: sticky; bottom: 0; background: white; border-top: 1px solid var(--border); padding: 16px 24px; display: flex; justify-content: flex-end; gap: 12px; }
   .btn-save { background: var(--pink); color: white; border: none; padding: 13px 32px; border-radius: 8px; font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
   .btn-save:hover { background: var(--pink-dark); }
   .btn-save:disabled { background: var(--text3); cursor: not-allowed; }
   .save-msg { font-size: 13px; color: var(--text3); display: flex; align-items: center; }
 
-  /* MEMBER INFO BAR */
   .member-bar { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
   .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--pink-light); display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 15px; color: var(--pink); flex-shrink: 0; }
   .member-name { font-size: 16px; font-weight: 500; }
   .member-sub { font-size: 13px; color: var(--text3); }
   .tag { font-size: 11px; padding: 3px 10px; border-radius: 10px; }
 
-  /* SWAP MODAL */
   .swap-modal { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }
   .swap-box { background:white; border-radius:16px; width:100%; max-width:480px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden; }
   .swap-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
@@ -156,56 +139,18 @@
   .swap-item { padding:10px 20px; border-bottom:1px solid #f5f0eb; cursor:pointer; transition:background 0.15s; }
   .swap-item:hover { background:var(--pink-light); }
   .food-chip:hover { opacity:0.8; transform:scale(0.98); }
- 
-  /* ── 일반식 슬롯 ── */
-.general-meal-slot {
-  background: #FFF8E6;
-  border: 1.5px dashed #F4A93C;
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 6px 0;
-}
-.portion-guide-hint {
-  display: block;
-  font-size: 11px;
-  color: #F4A93C;
-  margin-top: 4px;
-}
-/* ── 일반식 가이드 박스 ── */
-.general-meal-guide-box {
-  background: #FFF8E6;
-  border: 1px solid #F4A93C;
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-top: 20px;
-}
-.guide-title {
-  font-weight: 700;
-  font-size: 14px;
-  color: #C47A15;
-  margin-bottom: 8px;
-}
-.guide-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 10px 0;
-  font-size: 13px;
-  color: #555;
-  line-height: 1.8;
-}
-.guide-links {
-  font-size: 12px;
-  color: #888;
-}
-.guide-links a {
-  color: #E8832A;
-  text-decoration: underline;
-}
+
+  .general-meal-slot { background: #FFF8E6; border: 1.5px dashed #F4A93C; border-radius: 8px; padding: 10px 12px; margin: 6px 0; }
+  .portion-guide-hint { display: block; font-size: 11px; color: #F4A93C; margin-top: 4px; }
+  .general-meal-guide-box { background: #FFF8E6; border: 1px solid #F4A93C; border-radius: 10px; padding: 14px 16px; margin-top: 20px; }
+  .guide-title { font-weight: 700; font-size: 14px; color: #C47A15; margin-bottom: 8px; }
+  .guide-list { list-style: none; padding: 0; margin: 0 0 10px 0; font-size: 13px; color: #555; line-height: 1.8; }
+  .guide-links { font-size: 12px; color: #888; }
+  .guide-links a { color: #E8832A; text-decoration: underline; }
 </style>
 </head>
 <body>
 
-<!-- 식재료 교체 모달 -->
 <div class="swap-modal" id="swap-modal" onclick="if(event.target===this)closeSwap()">
   <div class="swap-box">
     <div class="swap-header">
@@ -220,16 +165,11 @@
 </div>
 
 <header>
-  <div class="logo">
-    rara diet
-    <span>COACHING DASHBOARD</span>
-  </div>
+  <div class="logo">rara diet <span>COACHING DASHBOARD</span></div>
   <div style="font-size:12px; color:var(--text3);">라라어트 코치 전용</div>
 </header>
 
 <div class="container">
-
-  <!-- 회원 선택 -->
   <div class="select-section">
     <div class="select-label">회원 선택</div>
     <select class="member-select" id="member-select">
@@ -241,13 +181,8 @@
 
   <div class="loading" id="loading">⏳ 데이터 불러오는 중...</div>
 
-  <!-- 결과 영역 -->
   <div id="result-area">
-
-    <!-- 회원 정보 바 -->
     <div class="member-bar" id="member-bar"></div>
-
-    <!-- 탭 -->
     <div class="tabs">
       <div class="tab on" onclick="showTab('summary', this)">회원 요약</div>
       <div class="tab" onclick="showTab('mission', this)">4주 미션표</div>
@@ -255,57 +190,31 @@
       <div class="tab" onclick="showTab('workout', this)">28일 운동</div>
     </div>
 
-    <!-- 회원 요약 -->
     <div class="tab-content on" id="tab-summary">
-      <div class="card">
-        <div class="card-title">신체 측정</div>
-        <div class="grid4" id="body-metrics"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">칼로리 계산 결과</div>
-        <div class="grid3" id="calorie-metrics"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">탄단지 분배</div>
-        <div id="macro-section"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">리스크 체크</div>
-        <div id="risk-section"></div>
-      </div>
+      <div class="card"><div class="card-title">신체 측정</div><div class="grid4" id="body-metrics"></div></div>
+      <div class="card"><div class="card-title">칼로리 계산 결과</div><div class="grid3" id="calorie-metrics"></div></div>
+      <div class="card"><div class="card-title">탄단지 분배</div><div id="macro-section"></div></div>
+      <div class="card"><div class="card-title">리스크 체크</div><div id="risk-section"></div></div>
     </div>
-
-    <!-- 4주 미션표 -->
-    <div class="tab-content" id="tab-mission">
-      <div id="mission-section"></div>
-    </div>
-
-    <!-- 7일 식단 -->
+    <div class="tab-content" id="tab-mission"><div id="mission-section"></div></div>
     <div class="tab-content" id="tab-meal">
       <div style="font-size:12px; color:var(--text3); margin-bottom:12px;">음식 이름을 클릭하면 수정할 수 있어요.</div>
       <div id="meal-section"></div>
     </div>
-
-    <!-- 28일 운동 -->
     <div class="tab-content" id="tab-workout">
       <div style="font-size:12px; color:var(--text3); margin-bottom:12px;" id="workout-level-label"></div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
-        <span class="wt wt-tabata">타바타</span>
-        <span class="wt wt-lower">하체</span>
-        <span class="wt wt-upper">상체</span>
-        <span class="wt wt-core">코어</span>
-        <span class="wt wt-strength">전신근력</span>
-        <span class="wt wt-stretch">스트레칭</span>
+        <span class="wt wt-tabata">타바타</span><span class="wt wt-lower">하체</span>
+        <span class="wt wt-upper">상체</span><span class="wt wt-core">코어</span>
+        <span class="wt wt-strength">전신근력</span><span class="wt wt-stretch">스트레칭</span>
       </div>
       <div style="overflow-x:auto;"><div id="workout-section"></div></div>
     </div>
 
-    <!-- 저장 바 -->
     <div class="save-bar">
       <div class="save-msg" id="save-msg"></div>
       <button class="btn-save" onclick="saveToNotion()">노션에 저장하기</button>
     </div>
-
   </div>
 </div>
 
@@ -315,7 +224,6 @@
 // ──────────────────────────────────────────
 // 운동 영상 DB
 // ──────────────────────────────────────────
-
 const VIDEOS = {
   D1:  { label: '전신 타바타 31분',   type: 'tabata',   url: 'https://youtu.be/BlUyoiw2qbM?si=P4Oe207xt4S8pEpW' },
   D2:  { label: '코어 15분',          type: 'core',     url: 'https://youtu.be/N9ocAgrW5Kg?si=S-1DGYjsLI0qqfUk' },
@@ -343,9 +251,6 @@ const VIDEOS = {
   D27: { label: '팔뚝/상체 15분',     type: 'upper',    url: 'https://youtu.be/AOr_opVFL-I?si=M-CM9MhnWfhaAFP4' },
 };
 
-// ──────────────────────────────────────────
-// 운동 배치 플랜
-// ──────────────────────────────────────────
 const WORKOUT_PLANS = {
   beginner: {
     level: '초보자',
@@ -379,40 +284,18 @@ const WORKOUT_PLANS = {
 // ──────────────────────────────────────────
 // 계산 엔진
 // ──────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════
-// 라라어트 계산 엔진 v2.0
-// 적용: 식단 칼로리 계산 규칙 v1.0
-// 수정 대상: index.html / member.html 의 calcBMR ~ calcAll 함수 블록 전체 교체
-// ══════════════════════════════════════════════════════════════════════
-
-// ── 1. BMR 계산 ───────────────────────────────────────────────────────
-// 인바디(Katch-McArdle) 우선, 없으면 Harris-Benedict
 function calcBMR(d) {
-  if (d.골격근량 && d.체지방량) {
-    const ffm = d.현재체중 - d.체지방량;
-    return Math.round(370 + 21.6 * ffm);
-  }
-  if (d.성별 === '여성')
-    return Math.round(655.0955 + 9.5634 * d.현재체중 + 1.8496 * d.키 - 4.6756 * d.나이);
+  if (d.골격근량 && d.체지방량) { const ffm = d.현재체중 - d.체지방량; return Math.round(370 + 21.6 * ffm); }
+  if (d.성별 === '여성') return Math.round(655.0955 + 9.5634 * d.현재체중 + 1.8496 * d.키 - 4.6756 * d.나이);
   return Math.round(66.4730 + 13.7516 * d.현재체중 + 5.0033 * d.키 - 6.7550 * d.나이);
 }
 
-// ── 2. 활동계수 계산 ──────────────────────────────────────────────────
-// 평소활동량 + 걸음수/앉아있는시간 보정 + 운동 기여도(EA)
-// 최종 범위: 1.20 ~ 1.70
 function calcActivityFactor(d) {
-  const actMap = {
-    '매우 적음 (주로 앉아서 생활)': 1.20,
-    '보통 (가끔 걷는 편)':           1.35,
-    '많은 편 (활동량 많음)':          1.50,
-  };
+  const actMap = { '매우 적음 (주로 앉아서 생활)': 1.20, '보통 (가끔 걷는 편)': 1.35, '많은 편 (활동량 많음)': 1.50 };
   let af = actMap[d.평소활동량] || 1.30;
-
-  if (d.걸음수?.includes('3,000보 미만'))                             af -= 0.03;
+  if (d.걸음수?.includes('3,000보 미만')) af -= 0.03;
   else if (d.걸음수?.includes('8,000') || d.걸음수?.includes('10,000')) af += 0.05;
-  if (d.앉아있는시간?.includes('10시간'))                              af -= 0.02;
-
-  // 운동 기여도
+  if (d.앉아있는시간?.includes('10시간')) af -= 0.02;
   if (d.운동여부 !== '안 함') {
     const freqMap = { '주 1회': 1, '주 2회': 1, '주 3회': 2, '주 4회': 2, '주 5회 이상': 3 };
     const durMap  = { '30분 이내': 1, '30~60분': 2, '60~90분': 3, '90분 이상': 3 };
@@ -424,174 +307,110 @@ function calcActivityFactor(d) {
     else if (score <= 8) af += 0.15;
     else                 af += 0.20;
   }
-
   return Math.min(Math.max(Math.round(af * 100) / 100, 1.20), 1.70);
 }
 
-// ── 3. 위험도 계산 (각 0~2 정규화) ──────────────────────────────────
 function calcDietRisk(d) {
   let n = 0;
   if (d.외식빈도?.includes('거의 매일') || d.외식빈도?.includes('주 4') || d.외식빈도?.includes('주 5')) n++;
-  if (d.폭식?.includes('자주') || d.폭식?.includes('가끔'))                                               n++;
-  if (d.야식 === '있음')                                                                                   n++;
-  if (d.식사규칙성?.includes('불규칙') || d.식사시간?.includes('불규칙'))                                  n++;
-  if (d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회'))                             n++;
+  if (d.폭식?.includes('자주') || d.폭식?.includes('가끔')) n++;
+  if (d.야식 === '있음') n++;
+  if (d.식사규칙성?.includes('불규칙') || d.식사시간?.includes('불규칙')) n++;
+  if (d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회')) n++;
   return n <= 1 ? 0 : n === 2 ? 1 : 2;
 }
 
 function calcRecoveryRisk(d) {
   let n = 0;
   if (d.수면시간 === '5시간 미만' || d.수면시간 === '5~6시간') n++;
-  if (d.수면질 && d.수면질 <= 2)                               n++;
-  if (d.스트레스 && d.스트레스 >= 4)                           n++;
-  else if (d.스트레스 && d.스트레스 >= 3)                      n++;
-  if (d.피로도 && d.피로도 >= 4)                               n++;
+  if (d.수면질 && d.수면질 <= 2) n++;
+  if (d.스트레스 && d.스트레스 >= 4) n++;
+  else if (d.스트레스 && d.스트레스 >= 3) n++;
+  if (d.피로도 && d.피로도 >= 4) n++;
   return n <= 1 ? 0 : n === 2 ? 1 : 2;
 }
 
 function calcHormoneRisk(d) {
   if (d.성별 !== '여성') return 0;
   let n = 0;
-  if (d.PMS === '심한 편' || d.PMS === '약간 있음')             n++;
-  if (d.생리주기규칙성 === '불규칙')                             n++;
-  if (d.붓기?.includes('심'))                                    n++;
-  if (d.생리중운동 === '거의 불가능')                            n++;
+  if (d.PMS === '심한 편' || d.PMS === '약간 있음') n++;
+  if (d.생리주기규칙성 === '불규칙') n++;
+  if (d.붓기?.includes('심')) n++;
+  if (d.생리중운동 === '거의 불가능') n++;
   if (d.저탄수반응?.includes('저하') || d.저탄수반응?.includes('힘듦')) n++;
   return n <= 1 ? 0 : n === 2 ? 1 : 2;
 }
 
-// ── 4. 목표 유형 파싱 ─────────────────────────────────────────────────
 function parseGoalType(d) {
   const g = d.목표 || '';
   const hasFatLoss = g.includes('체지방') || g.includes('감량') || g.includes('다이어트');
   const hasMuscle  = g.includes('근육') || g.includes('증량');
-
-  // 체지방 감량 + 근육 증가 동시 → 보수감량 (체형 개선형)
   if (hasFatLoss && hasMuscle) return 'conservative_cut';
-  // 순수 증량
   if (hasMuscle)                return 'gain';
-  // 유지
   if (g.includes('유지'))        return 'maintenance';
-  // 보수 감량
   if (g.includes('보수') || g.includes('천천히') || g.includes('서서히')) return 'conservative_cut';
-  // 기본 감량
   return 'general_cut';
 }
 
-// ── 5. 탄단지 비율 프로필 선택 ────────────────────────────────────────
-// 합계가 1.0이 되도록 fat을 조정
 function selectMacroProfile(goalType, af, hormoneRisk, d) {
-  if (goalType === 'gain')
-    return { carb: 0.475, protein: 0.275, fat: 0.25, label: '증량형' };
-  if (af >= 1.50 || d.운동빈도?.includes('주 4') || d.운동빈도?.includes('주 5'))
-    return { carb: 0.50,  protein: 0.30,  fat: 0.20, label: '운동수행형' };
-  if (hormoneRisk >= 2 || d.폭식?.includes('자주'))
-    return { carb: 0.375, protein: 0.30,  fat: 0.325, label: '호르몬민감형' };
-  return   { carb: 0.40,  protein: 0.30,  fat: 0.30,  label: '일반감량형' };
+  if (goalType === 'gain') return { carb: 0.475, protein: 0.275, fat: 0.25, label: '증량형' };
+  if (af >= 1.50 || d.운동빈도?.includes('주 4') || d.운동빈도?.includes('주 5')) return { carb: 0.50, protein: 0.30, fat: 0.20, label: '운동수행형' };
+  if (hormoneRisk >= 2 || d.폭식?.includes('자주')) return { carb: 0.375, protein: 0.30, fat: 0.325, label: '호르몬민감형' };
+  return { carb: 0.40, protein: 0.30, fat: 0.30, label: '일반감량형' };
 }
 
-// ── 6. 끼니 분배 선택 ────────────────────────────────────────────────
 function selectMealDist(d) {
-  const binge    = d.폭식?.includes('자주') || d.폭식?.includes('가끔');
+  const binge = d.폭식?.includes('자주') || d.폭식?.includes('가끔');
   const lateNight = d.야식 === '있음';
-  const eatOut   = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('주 4') || d.외식빈도?.includes('거의 매일');
-  if (binge || lateNight)
-    return { type: '야식/폭식위험형', breakfast: 0.25, lunch: 0.30, snack: 0.10, dinner: 0.35 };
-  if (eatOut)
-    return { type: '외식포함형',      breakfast: 0.25, lunch: 0.40, dinner: 0.35 };
-  return           { type: '기본3끼',      meal1: 0.30,    meal2: 0.35,  meal3: 0.35 };
+  const eatOut = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('주 4') || d.외식빈도?.includes('거의 매일');
+  if (binge || lateNight) return { type: '야식/폭식위험형', breakfast: 0.25, lunch: 0.30, snack: 0.10, dinner: 0.35 };
+  if (eatOut) return { type: '외식포함형', breakfast: 0.25, lunch: 0.40, dinner: 0.35 };
+  return { type: '기본3끼', meal1: 0.30, meal2: 0.35, meal3: 0.35 };
 }
 
-// ── 7. 메인 계산 함수 ─────────────────────────────────────────────────
 function calcAll(d) {
   const bmr         = calcBMR(d);
   const totalFactor = calcActivityFactor(d);
   const tdee        = Math.round(bmr * totalFactor);
-
   const dietRisk     = calcDietRisk(d);
   const recoveryRisk = calcRecoveryRisk(d);
   const hormoneRisk  = calcHormoneRisk(d);
   const riskSum      = dietRisk + recoveryRisk + hormoneRisk;
-
   const goalType = parseGoalType(d);
-
-  // 기본 적자/적립
   const baseOffset = { conservative_cut: -350, general_cut: -550, maintenance: 0, gain: +200 }[goalType];
-
-  // 위험도 보정 (적자 완화 = kcal 환원)
   let riskAdjust = 0;
   if      (riskSum >= 4) riskAdjust += 200;
   else if (riskSum >= 2) riskAdjust += 100;
   if (dietRisk     >= 2) riskAdjust += 100;
   if (recoveryRisk >= 2) riskAdjust += 100;
   if (hormoneRisk  >= 2) riskAdjust += 100;
-
-  // safetyFlag: 공격 감량 금지 조건
-  const safetyFlag =
-    hormoneRisk >= 2 || recoveryRisk >= 2 ||
-    d.생리주기규칙성 === '불규칙' ||
-    d.폭식?.includes('자주') ||
-    d.수면시간 === '5시간 미만';
-
-   // 최종 targetCal — 적용 우선순위:
-  // 1) 기본 계산 → 2) 위험도 보정 → 3) BMR 하한선 → 4) 감량 최소선 상한
+  const safetyFlag = hormoneRisk >= 2 || recoveryRisk >= 2 || d.생리주기규칙성 === '불규칙' || d.폭식?.includes('자주') || d.수면시간 === '5시간 미만';
   let targetCal = Math.round(tdee + baseOffset + riskAdjust);
- 
-  // [3] BMR 하한선
   targetCal = Math.max(targetCal, bmr);
- 
-// [4] 목표별 상한선 제한
-  if (goalType === 'conservative_cut' || goalType === 'general_cut') {
-    targetCal = Math.min(targetCal, tdee - 200);
-  }
-  if (goalType === 'gain') {
-    targetCal = Math.min(targetCal, tdee + 250);
-  }
-  if (goalType === 'maintenance') {
-    targetCal = Math.min(targetCal, tdee + 100);
-    targetCal = Math.max(targetCal, tdee - 100);
-  }
- 
-  // 탄단지 비율 선택 및 환산
+  if (goalType === 'conservative_cut' || goalType === 'general_cut') targetCal = Math.min(targetCal, tdee - 200);
+  if (goalType === 'gain') targetCal = Math.min(targetCal, tdee + 250);
+  if (goalType === 'maintenance') { targetCal = Math.min(targetCal, tdee + 100); targetCal = Math.max(targetCal, tdee - 100); }
   const macro   = selectMacroProfile(goalType, totalFactor, hormoneRisk, d);
   const protein = Math.round(targetCal * macro.protein / 4);
   const fat     = Math.max(Math.round(targetCal * macro.fat / 9), 40);
   const carb    = Math.max(Math.round(targetCal * macro.carb / 4), 50);
-
   const proteinPct = Math.round(protein * 4 / targetCal * 100);
   const fatPct     = Math.round(fat * 9    / targetCal * 100);
   const carbPct    = 100 - proteinPct - fatPct;
-
-  // 운동 레벨
   const freqMap2 = { '주 1회': 1, '주 2회': 2, '주 3회': 3, '주 4회': 4, '주 5회 이상': 5 };
   const freq = freqMap2[d.운동빈도] || 0;
   let workoutLevel = 'beginner';
   if (d.운동여부 === '안 함') workoutLevel = 'beginner';
   else if (freq >= 4)         workoutLevel = 'advanced';
   else if (freq >= 2)         workoutLevel = 'intermediate';
-
-  // 회원 유형
   let userType = '균형형';
   if      (dietRisk >= 2 && freq <= 1) userType = '저활동-식습관위험형';
   else if (freq >= 3 && dietRisk >= 1) userType = '운동하지만정체형';
   else if (recoveryRisk >= 2)          userType = '생활리듬붕괴형';
   else if (hormoneRisk >= 2)           userType = '호르몬민감형';
   else if (goalType === 'gain')        userType = '체형개선형';
-
   const mealDist = selectMealDist(d);
-
-  return {
-    bmr, tdee, targetCal,
-    totalFactor: totalFactor.toFixed(2),
-    protein, fat, carb,
-    proteinPct, fatPct, carbPct,
-    dietRisk, recoveryRisk, hormoneRisk, riskSum,
-    riskAdjust, safetyFlag,
-    goalType, macroLabel: macro.label,
-    macroRatio: { carb: macro.carb, protein: macro.protein, fat: macro.fat },
-    workoutLevel, userType,
-    mealDist,
-  };
+  return { bmr, tdee, targetCal, totalFactor: totalFactor.toFixed(2), protein, fat, carb, proteinPct, fatPct, carbPct, dietRisk, recoveryRisk, hormoneRisk, riskSum, riskAdjust, safetyFlag, goalType, macroLabel: macro.label, macroRatio: { carb: macro.carb, protein: macro.protein, fat: macro.fat }, workoutLevel, userType, mealDist };
 }
 
 // ──────────────────────────────────────────
@@ -604,152 +423,24 @@ function generateMissions(d, calc) {
     week3: { theme: '바디체크 반영 · 집중 관리', mission1: '', mission2: '', dailyFix: '' },
     week4: { theme: '마무리 · 습관 고정', mission1: '', mission2: '', dailyFix: '' },
   };
-
-  // 1주차
-  missions.week1.mission1 = d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회')
-    ? '매끼 단백질 식품 1가지 이상 포함하기 (계란, 닭가슴살, 두부, 그릭요거트)'
-    : '하루 식사 3끼 규칙적으로 챙기기';
-  missions.week1.mission2 = d.야식 === '있음'
-    ? '취침 2시간 전 음식 섭취 금지 (야식 차단)'
-    : '식사 속도 20분 이상 천천히 먹기';
-  missions.week1.dailyFix = d.물섭취량?.includes('미만') || d.물섭취량?.includes('1L')
-    ? '하루 물 1.5L 이상 마시기'
-    : '하루 물 2L 마시기';
-
-  // 2주차
-  missions.week2.mission1 = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('매일')
-    ? '외식 시 단백질 메뉴 먼저 고르기 + 탄수화물 반공기 줄이기'
-    : '주 3회 이상 채소 반찬 추가하기';
+  missions.week1.mission1 = d.단백질섭취빈도?.includes('거의') || d.단백질섭취빈도?.includes('1회') ? '매끼 단백질 식품 1가지 이상 포함하기 (계란, 닭가슴살, 두부, 그릭요거트)' : '하루 식사 3끼 규칙적으로 챙기기';
+  missions.week1.mission2 = d.야식 === '있음' ? '취침 2시간 전 음식 섭취 금지 (야식 차단)' : '식사 속도 20분 이상 천천히 먹기';
+  missions.week1.dailyFix = d.물섭취량?.includes('미만') || d.물섭취량?.includes('1L') ? '하루 물 1.5L 이상 마시기' : '하루 물 2L 마시기';
+  missions.week2.mission1 = d.외식빈도?.includes('주 3') || d.외식빈도?.includes('매일') ? '외식 시 단백질 메뉴 먼저 고르기 + 탄수화물 반공기 줄이기' : '주 3회 이상 채소 반찬 추가하기';
   missions.week2.mission2 = '주 4회 이상 운동 완료 (영상 따라 하기)';
-  missions.week2.dailyFix = d.걸음수?.includes('3,000') || d.걸음수?.includes('5,000')
-    ? '하루 걸음수 6,000보 이상 채우기'
-    : '하루 걸음수 8,000보 이상 채우기';
-
-  // 3주차
+  missions.week2.dailyFix = d.걸음수?.includes('3,000') || d.걸음수?.includes('5,000') ? '하루 걸음수 6,000보 이상 채우기' : '하루 걸음수 8,000보 이상 채우기';
   missions.week3.mission1 = '저녁 탄수화물 절반 줄이고 채소로 대체 (밥 반공기 → 채소 추가)';
-  missions.week3.mission2 = d.자유식허용 === '원함' || d.자유식허용 === '코치에게 맡김'
-    ? '주말 자유식 다음 날 정상식 복귀 — 굶지 않기'
-    : '간식 대신 단백질 식품으로 대체하기';
+  missions.week3.mission2 = d.자유식허용 === '원함' || d.자유식허용 === '코치에게 맡김' ? '주말 자유식 다음 날 정상식 복귀 — 굶지 않기' : '간식 대신 단백질 식품으로 대체하기';
   missions.week3.dailyFix = '하루 물 2L + 채소 2가지 이상 섭취';
-
-  // 4주차
   missions.week4.mission1 = '4주 식단 + 운동 이행률 80% 이상 달성하기';
   missions.week4.mission2 = '다음 달 목표 3가지 직접 작성해서 공유하기';
   missions.week4.dailyFix = '하루 7,000보 + 수면 7시간 목표';
-
   return missions;
 }
 
 // ──────────────────────────────────────────
-// 식단 생성 (식재료 DB 기반)
+// 식재료 DB & 식단 생성
 // ──────────────────────────────────────────
-function generateMealPlan(calc, d) {
-  // FOOD_DB가 로드된 경우 DB 기반 생성
-  if (typeof FOOD_DB !== 'undefined' && FOOD_DB.length > 0) {
-    return generateMealPlanFromDB(calc, d);
-  }
-  // fallback: 기본 템플릿
-  return [
-    { day: '월', meals: [{ type: '아침', foods: '그릭요거트 + 바나나 + 견과류', kcal: 320 }, { type: '점심', foods: '현미밥 반공기 + 닭가슴살 + 된장국 + 나물', kcal: 530 }, { type: '저녁', foods: '두부구이 + 샐러드 + 고구마', kcal: 480 }], total: 1330 },
-    { day: '화', meals: [{ type: '아침', foods: '오트밀 + 달걀 스크램블 + 블루베리', kcal: 350 }, { type: '점심', foods: '잡곡밥 반공기 + 연어구이 + 미역국', kcal: 560 }, { type: '저녁', foods: '닭안심 볶음 + 브로콜리 + 현미밥', kcal: 490 }], total: 1400 },
-    { day: '수', meals: [{ type: '아침', foods: '삶은 달걀 2개 + 통밀식빵 + 아보카도', kcal: 380 }, { type: '점심', foods: '닭가슴살 샐러드 + 고구마 + 견과류', kcal: 510 }, { type: '저녁', foods: '소고기 구이 + 현미밥 + 쌈채소', kcal: 530 }], total: 1420 },
-    { day: '목', meals: [{ type: '아침', foods: '단백질 쉐이크 + 바나나', kcal: 300 }, { type: '점심', foods: '비빔밥 반공기 + 계란후라이 + 채소', kcal: 540 }, { type: '저녁', foods: '연두부 + 참치 + 방울토마토 + 고구마', kcal: 480 }], total: 1320 },
-    { day: '금', meals: [{ type: '아침', foods: '달걀 오믈렛 + 통밀식빵 + 토마토', kcal: 360 }, { type: '점심', foods: '현미밥 + 제육볶음 + 나물', kcal: 550 }, { type: '저녁', foods: '닭가슴살 + 채소 수프 + 고구마', kcal: 440 }], total: 1350 },
-    { day: '토', meals: [{ type: '아침', foods: '그릭요거트 파르페 + 그래놀라', kcal: 340 }, { type: '점심', foods: '현미밥 + 생선구이 + 된장찌개 + 나물', kcal: 530 }, { type: '저녁', foods: '두부 김치볶음 + 잡곡밥', kcal: 490 }], total: 1360 },
-    { day: '일', meals: [{ type: '아침', foods: '귀리 팬케이크 + 달걀 + 딸기', kcal: 370 }, { type: '점심', foods: '닭가슴살 볶음밥 + 계란 + 채소', kcal: 540 }, { type: '저녁', foods: '순두부찌개 + 현미밥 + 나물', kcal: 480 }], total: 1390 },
-  ];
-}
-
-// ──────────────────────────────────────────
-// UI 렌더링
-// ──────────────────────────────────────────
-let currentMemberId = '';
-let currentData = null;
-let currentCalc = null;
-let currentMissions = null;
-let currentMealPlan = null;
-let currentWorkout = null;
-
-function showTab(id, el) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  document.getElementById('tab-' + id).classList.add('on');
-  el.classList.add('on');
-}
-
-function renderSummary(d, calc) {
-  // 회원 바
-  const initials = (d.이름 || '??').slice(0, 2);
-  const tags = [
-    { text: d.목표 || '-', color: 'pink' },
-    { text: calc.userType, color: 'blue' },
-    { text: d.홈트가능 === '가능' ? '홈트 가능' : '홈트 어려움', color: 'green' },
-  ];
-  document.getElementById('member-bar').innerHTML = `
-    <div class="avatar">${initials}</div>
-    <div>
-      <div class="member-name">${d.이름 || '-'}</div>
-      <div class="member-sub">${d.나이 || '-'}세 · ${d.성별 || '-'} · ${d.프로그램 || '온라인 코칭'}</div>
-      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-        ${tags.map(t => `<span class="tag badge-${t.color === 'pink' ? 'red' : t.color === 'blue' ? 'blue' : 'green'}" style="background:var(--${t.color === 'pink' ? 'pink' : t.color === 'blue' ? 'blue' : 'green'}-bg);color:var(--${t.color === 'pink' ? 'pink-dark' : t.color === 'blue' ? 'blue' : 'green'})">${t.text}</span>`).join('')}
-      </div>
-    </div>`;
-
-  // 신체 측정
-  document.getElementById('body-metrics').innerHTML = [
-    { label: '키', val: d.키, unit: 'cm' },
-    { label: '체중', val: d.현재체중, unit: 'kg' },
-    { label: '체지방률', val: d.체지방률, unit: '%' },
-    { label: '골격근량', val: d.골격근량, unit: 'kg' },
-  ].map(m => `<div class="metric"><div class="metric-label">${m.label}</div><div class="metric-val">${m.val || '-'}<span>${m.unit}</span></div></div>`).join('');
-
-  // 칼로리
-  document.getElementById('calorie-metrics').innerHTML = `
-    <div class="metric"><div class="metric-label">기초대사량 (BMR)</div><div class="metric-val">${calc.bmr.toLocaleString()}<span>kcal</span></div></div>
-    <div class="metric"><div class="metric-label">활동대사량 (TDEE)</div><div class="metric-val">${calc.tdee.toLocaleString()}<span>kcal</span></div></div>
-    <div class="metric" style="border:1px solid var(--pink);"><div class="metric-label">목표 섭취 칼로리</div><div class="metric-val highlight">${calc.targetCal.toLocaleString()}<span>kcal</span></div></div>`;
-
-  // 탄단지
-  document.getElementById('macro-section').innerHTML = `
-    <div class="macro-bar">
-      <div class="bar-p" style="width:${calc.proteinPct}%"></div>
-      <div class="bar-c" style="width:${calc.carbPct}%"></div>
-      <div class="bar-f" style="width:${calc.fatPct}%"></div>
-    </div>
-    <div class="macro-legend">
-      <span><span class="dot" style="background:var(--pink)"></span>단백질 ${calc.protein}g (${calc.proteinPct}%)</span>
-      <span><span class="dot" style="background:#F4C0D1"></span>탄수화물 ${calc.carb}g (${calc.carbPct}%)</span>
-      <span><span class="dot" style="background:#FAC775"></span>지방 ${calc.fat}g (${calc.fatPct}%)</span>
-    </div>
-    <div style="margin-top:10px;font-size:12px;color:var(--text3);">활동계수 ${calc.totalFactor} · ${calc.safetyFlag ? '⚠️ Safety Flag ON (적자 완화 적용)' : 'Safety Flag OFF'} · 회원유형: ${calc.userType}</div>`;
-
-  // 리스크
-  const dietBadge = calc.dietRisk >= 4 ? 'badge-red' : calc.dietRisk >= 2 ? 'badge-amber' : 'badge-green';
-  const recBadge = calc.recoveryRisk >= 4 ? 'badge-red' : calc.recoveryRisk >= 2 ? 'badge-amber' : 'badge-green';
-  const horBadge = calc.hormoneRisk >= 3 ? 'badge-red' : calc.hormoneRisk >= 2 ? 'badge-amber' : 'badge-green';
-  document.getElementById('risk-section').innerHTML = `
-    <div class="risk-row">
-      <span class="badge ${dietBadge}">식습관 위험 ${calc.dietRisk}/8</span>
-      <span class="badge ${recBadge}">회복 위험 ${calc.recoveryRisk}/6</span>
-      <span class="badge ${horBadge}">호르몬 위험 ${calc.hormoneRisk}/4</span>
-    </div>`;
-}
-
-function renderMissions(missions) {
-  const weeks = ['week1', 'week2', 'week3', 'week4'];
-  const labels = ['1주차', '2주차', '3주차', '4주차'];
-  document.getElementById('mission-section').innerHTML = weeks.map((w, i) => `
-    <div class="week-block">
-      <div class="week-header"><span class="week-num">${labels[i]}</span><span class="week-theme">${missions[w].theme}</span></div>
-      <div class="week-body">
-        <div class="mission-row"><span class="mbadge mbadge-w">주간미션 1</span><span class="mission-txt">${missions[w].mission1}</span></div>
-        <div class="mission-row"><span class="mbadge mbadge-w">주간미션 2</span><span class="mission-txt">${missions[w].mission2}</span></div>
-        <div class="mission-row"><span class="mbadge mbadge-df">데일리 고정</span><span class="mission-txt">${missions[w].dailyFix}</span></div>
-      </div>
-    </div>`).join('');
-}
-
-// ── 식재료 DB ──
 let FOODS_DB = [];
 
 async function loadFoodsDB() {
@@ -758,22 +449,19 @@ async function loadFoodsDB() {
     const { foods } = await res.json();
     FOODS_DB = foods;
     console.log(`식재료 DB 로드: ${foods.length}개`);
-  } catch(e) {
-    console.error('식재료 DB 로드 실패:', e);
-  }
+  } catch(e) { console.error('식재료 DB 로드 실패:', e); }
 }
 
-// ── 끼니별 칼로리 비율 ──
 const MEAL_RATIO = { 아침: 0.25, 점심: 0.35, 간식: 0.10, 저녁: 0.30 };
 
-// 기존 MEAL_STRUCTURE 전체를 아래로 교체
+// ✅ 수정 1: 아침 채소 슬롯에서 '과일' 제거 — 과일은 탄수화물군으로만 배정
 const MEAL_STRUCTURE = {
   아침: [
     { role: '단백질',   cats: ['단백질','유제품','육류'],  ratio: 0.40 },
     { role: '탄수화물', cats: ['탄수화물','곡류'],         ratio: 0.40 },
-    { role: '채소1',    cats: ['채소','과일'],             ratio: 0.10 },
-    { role: '채소2',    cats: ['채소','과일'],             ratio: 0.07 },
-    { role: '채소3',    cats: ['채소','과일'],             ratio: 0.03, optional: true },
+    { role: '채소1',    cats: ['채소'],                    ratio: 0.10 },
+    { role: '채소2',    cats: ['채소'],                    ratio: 0.07 },
+    { role: '채소3',    cats: ['채소'],                    ratio: 0.03, optional: true },
   ],
   점심: [
     { role: '단백질',   cats: ['단백질','육류','해산물'],  ratio: 0.35 },
@@ -804,11 +492,7 @@ function pickFood(cats, mealType, usedNames, badWords) {
     return true;
   });
   if (!candidates.length) {
-    // 모두 사용됐으면 usedNames 무시하고 재선택
-    const fallback = FOODS_DB.filter(f =>
-      cats.includes(f.category) && f.meals.includes(mealType) &&
-      !badWords.some(w => w && f.name.toLowerCase().includes(w.toLowerCase()))
-    );
+    const fallback = FOODS_DB.filter(f => cats.includes(f.category) && f.meals.includes(mealType) && !badWords.some(w => w && f.name.toLowerCase().includes(w.toLowerCase())));
     return fallback[Math.floor(Math.random() * fallback.length)] || null;
   }
   return candidates[Math.floor(Math.random() * candidates.length)];
@@ -819,42 +503,22 @@ function calcPortion(food, targetKcal) {
   let grams = Math.round((targetKcal / food.kcal) * food.amount / 10) * 10;
   grams = Math.max(20, Math.min(grams, 300));
   const r = grams / food.amount;
-  return {
-    food,
-    grams,
-    kcal: Math.round(food.kcal * r),
-    protein: Math.round(food.protein * r * 10) / 10,
-    carb: Math.round(food.carb * r * 10) / 10,
-    fat: Math.round(food.fat * r * 10) / 10,
-  };
+  return { food, grams, kcal: Math.round(food.kcal * r), protein: Math.round(food.protein * r * 10) / 10, carb: Math.round(food.carb * r * 10) / 10, fat: Math.round(food.fat * r * 10) / 10 };
 }
 
-
-// ── 메인: 주간 식단 생성 v2.0 ────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════
-// 식단 생성 모듈 v2.0 — 식재료 구성 규칙 v1.0 적용
-//
-// 적용 파일: index.html / member.html
-// 교체 범위: PRIORITY_PROTEINS 상수 ~ generateWeekMeal 함수 끝까지
-//            (기존 FOOD_SUBSTITUTE, filterFood, scaleMeals 는 유지)
-// ══════════════════════════════════════════════════════════════════════
-
-// ── 메인: 주간 식단 생성 v2.0 ────────────────────────────────────────────
-// ── 규칙 1: 탄수화물 끼니별 허용 풀 ──
+// ✅ 수정 2: CARB_POOLS 아침/간식에 저당 과일(블루베리·딸기·키위) 추가
 const CARB_POOLS = {
-  아침: ['오트밀', '고구마', '바나나', '통밀식빵', '귀리'],
+  아침: ['오트밀', '고구마', '바나나', '통밀식빵', '귀리', '블루베리', '딸기', '키위'],
   점심: ['현미밥'],
   저녁: ['현미밥', '고구마'],
-  간식: ['바나나', '고구마'],
+  간식: ['바나나', '고구마', '블루베리', '딸기', '키위'],
 };
 const CARB_POOL_LIMIT = { 아침: 3, 점심: 1, 저녁: 2, 간식: 2 };
 
-// ── 규칙 2: 단백질 우선순위 + 해산물 제한 ──
 const PRIORITY_PROTEINS = ['닭가슴살', '닭안심', '돼지안심', '소고기우둔살', '틸라피아', '두부', '계란'];
 const SEAFOOD_NAMES = ['연어', '새우', '오징어', '조개', '고등어', '대구', '명태', '갈치', '광어'];
 const MAX_SEAFOOD_PER_WEEK = 2;
 
-// ── 규칙 3: 야채 조합 프리셋 ──
 const VEGGIE_COMBOS = [
   { names: ['양배추', '양파', '오이'],       kcalPer100: 28,  protein: 1.5, carb: 5.5, fat: 0.2 },
   { names: ['브로콜리', '버섯', '파프리카'],  kcalPer100: 32,  protein: 2.8, carb: 5.5, fat: 0.4 },
@@ -865,7 +529,6 @@ const VEGGIE_COMBOS = [
   { names: ['시금치', '버섯', '파프리카'],    kcalPer100: 28,  protein: 2.5, carb: 5.0, fat: 0.3 },
 ];
 
-// ── 규칙 4: 일반식 가이드 ──
 const GENERAL_MEAL_GUIDE = `🍱 일반식 선택 가이드
 - 서브웨이 15cm 터키/치킨: 약 350~380kcal, 단백질 25~30g (소스는 머스타드·식초만)
 - 그릭 샐러드 + 닭가슴살 토핑: 약 380~430kcal, 단백질 35~40g
@@ -873,8 +536,8 @@ const GENERAL_MEAL_GUIDE = `🍱 일반식 선택 가이드
 - 한식 도시락 (닭가슴살 + 현미밥 + 나물 2종): 약 480~530kcal, 단백질 35~40g
 - 순두부찌개 + 밥 반공기: 약 380~430kcal, 단백질 20~25g
 📱 칼로리 확인: 칼로리코치 앱 / 다이어트신(dietshin.com) / 식품안전나라`;
-  
-  function pickVeggieCombo(badWords, usedCombos) {
+
+function pickVeggieCombo(badWords, usedCombos) {
   const available = VEGGIE_COMBOS.filter(c => {
     const key = c.names.join(',');
     if (usedCombos.has(key)) return false;
@@ -885,9 +548,11 @@ const GENERAL_MEAL_GUIDE = `🍱 일반식 선택 가이드
   usedCombos.add(combo.names.join(','));
   return combo;
 }
-  function pickSingleVeggie(mealType, badWords, usedVeggiesDay) {
+
+// ✅ 수정 3: pickSingleVeggie — '과일' 카테고리 제거, 채소만 선택
+function pickSingleVeggie(mealType, badWords, usedVeggiesDay) {
   const candidates = (typeof FOODS_DB !== 'undefined' ? FOODS_DB : []).filter(f => {
-    if (f.category !== '채소' && f.category !== '과일') return false;
+    if (f.category !== '채소') return false;
     if (!f.meals?.includes(mealType)) return false;
     if (badWords.some(b => b && f.name?.includes(b))) return false;
     if (usedVeggiesDay.has(f.name)) return false;
@@ -895,7 +560,7 @@ const GENERAL_MEAL_GUIDE = `🍱 일반식 선택 가이드
   });
   if (!candidates.length) {
     const fallback = (typeof FOODS_DB !== 'undefined' ? FOODS_DB : []).filter(f =>
-      (f.category === '채소' || f.category === '과일') &&
+      f.category === '채소' &&
       f.meals?.includes(mealType) &&
       !badWords.some(b => b && f.name?.includes(b))
     );
@@ -911,9 +576,7 @@ function pickCarbFromPool(mealType, usedCarbsByMeal) {
   const limit = CARB_POOL_LIMIT[mealType] || 3;
   const used  = usedCarbsByMeal[mealType] || [];
   const available = pool.filter(c => used.filter(u => u === c).length < Math.ceil(7 / limit));
-  const chosen = available.length
-    ? available[Math.floor(Math.random() * available.length)]
-    : pool[Math.floor(Math.random() * pool.length)];
+  const chosen = available.length ? available[Math.floor(Math.random() * available.length)] : pool[Math.floor(Math.random() * pool.length)];
   usedCarbsByMeal[mealType] = [...used, chosen];
   return chosen;
 }
@@ -930,9 +593,7 @@ function pickProteinFood(FOODS_DB, mealType, badWords, usedNames, seafoodCountRe
     return true;
   });
   if (!candidates.length) return null;
-  const prioritized = candidates.filter(f =>
-    PRIORITY_PROTEINS.some(p => f.name?.includes(p)) && !usedNames.has(f.name)
-  );
+  const prioritized = candidates.filter(f => PRIORITY_PROTEINS.some(p => f.name?.includes(p)) && !usedNames.has(f.name));
   const fallback = candidates.filter(f => !usedNames.has(f.name));
   const pool = prioritized.length ? prioritized : fallback.length ? fallback : candidates;
   const chosen = pool[Math.floor(Math.random() * pool.length)];
@@ -945,194 +606,176 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
   const carbG    = Math.round(targetKcal * macroRatio.carb / 4);
   const proteinG = Math.round(targetKcal * macroRatio.protein / 4);
   const fatG     = Math.round(targetKcal * macroRatio.fat / 9);
-  return {
-    portions: [{
-      food: { name: '🍱 일반식', category: '일반식', kcal: 0, amount: 0 },
-      grams: 0, kcal: targetKcal, protein: proteinG, carb: carbG, fat: fatG,
-      role: '일반식', isGeneralMeal: true, guideText: GENERAL_MEAL_GUIDE,
-    }],
-    totalKcal: targetKcal,
-    isGeneralMeal: true,
-  };
+  return { portions: [{ food: { name: '🍱 일반식', category: '일반식', kcal: 0, amount: 0 }, grams: 0, kcal: targetKcal, protein: proteinG, carb: carbG, fat: fatG, role: '일반식', isGeneralMeal: true, guideText: GENERAL_MEAL_GUIDE }], totalKcal: targetKcal, isGeneralMeal: true };
 }
-  
-  
-  
-  function generateWeekMeal(calc, memberData) {
+
+function generateWeekMeal(calc, memberData) {
   const targetCal  = calc.targetCal;
   const macroRatio = calc.macroRatio || { carb: 0.40, protein: 0.30, fat: 0.30 };
   const badWords   = [
     ...(memberData.싫어하는음식 || '').split(/[,，\s]+/),
-    ...((memberData.알레르기 || '') !== '없음'
-      ? (memberData.알레르기 || '').split(/[,，\s]+/) : [])
+    ...((memberData.알레르기 || '') !== '없음' ? (memberData.알레르기 || '').split(/[,，\s]+/) : [])
   ].filter(Boolean);
 
   const 식사횟수  = memberData.식사횟수 || '3끼';
-  const mealTypes = 식사횟수 === '4끼 이상'
-    ? ['아침', '점심', '간식', '저녁']
-    : ['아침', '점심', '저녁'];
+  const mealTypes = 식사횟수 === '4끼 이상' ? ['아침', '점심', '간식', '저녁'] : ['아침', '점심', '저녁'];
 
-  // 일반식 슬롯 적용 조건
   const eatOutFreq    = memberData.외식빈도 || '';
   const hasFamilyMeal = (memberData.가족식사 === '예') || (memberData.가족식사 || '').includes('가족');
-  const needsLunchSlot  = eatOutFreq.includes('주 3') || eatOutFreq.includes('주 4')
-                        || eatOutFreq.includes('주 5') || eatOutFreq.includes('매일');
+  const needsLunchSlot  = eatOutFreq.includes('주 3') || eatOutFreq.includes('주 4') || eatOutFreq.includes('주 5') || eatOutFreq.includes('매일');
   const needsDinnerSlot = hasFamilyMeal;
 
-  // 추적 변수
   const usedCarbsByMeal = { 아침: [], 점심: [], 저녁: [], 간식: [] };
   const seafoodCountRef = { count: 0 };
   const usedCombos      = new Set();
   const usedNames       = new Set();
 
   const MEAL_RATIO_MAP = { 아침: 0.30, 점심: 0.35, 저녁: 0.35, 간식: 0.10 };
-
   const days    = ['월', '화', '수', '목', '금', '토', '일'];
   const weekPlan = [];
 
   for (let di = 0; di < 7; di++) {
     const dayMeals = {};
-
     for (const mt of mealTypes) {
       const mealKcal = Math.round(targetCal * (MEAL_RATIO_MAP[mt] || 0.30));
 
-      // ── 규칙 4: 일반식 슬롯 처리 ──────────────────────────────────
-      if (mt === '점심' && needsLunchSlot && di % 2 === 0) {
-        dayMeals[mt] = makeGeneralMealSlot(mt, mealKcal, macroRatio);
-        continue;
-      }
-      if (mt === '저녁' && needsDinnerSlot && di % 2 === 1) {
-        dayMeals[mt] = makeGeneralMealSlot(mt, mealKcal, macroRatio);
-        continue;
-      }
+      if (mt === '점심' && needsLunchSlot && di % 2 === 0) { dayMeals[mt] = makeGeneralMealSlot(mt, mealKcal, macroRatio); continue; }
+      if (mt === '저녁' && needsDinnerSlot && di % 2 === 1) { dayMeals[mt] = makeGeneralMealSlot(mt, mealKcal, macroRatio); continue; }
 
-      // ── 끼니별 슬롯 ratio 참조 (MEAL_STRUCTURE 기준) ──────────────
-      // ✅ Fix: macroRatio(하루 전체 비율) 대신 MEAL_STRUCTURE의 끼니별 ratio 사용
-      const structure       = MEAL_STRUCTURE[mt] || MEAL_STRUCTURE['점심'];
+      const structure        = MEAL_STRUCTURE[mt] || MEAL_STRUCTURE['점심'];
       const proteinSlotRatio = structure[0]?.ratio ?? 0.40;
       const carbSlotRatio    = structure[1]?.ratio ?? 0.35;
-      // 야채 슬롯은 남은 칼로리로 계산하므로 ratio 직접 사용 안 함
-
       const portions = [];
 
-      // ── [0] 단백질 슬롯 ───────────────────────────────────────────
+      // [0] 단백질
       const proteinKcal = Math.round(mealKcal * proteinSlotRatio);
-      const proteinFood = (typeof FOODS_DB !== 'undefined')
-        ? pickProteinFood(FOODS_DB, mt, badWords, usedNames, seafoodCountRef)
-        : null;
-
+      const proteinFood = (typeof FOODS_DB !== 'undefined') ? pickProteinFood(FOODS_DB, mt, badWords, usedNames, seafoodCountRef) : null;
       if (proteinFood) {
         const r = proteinKcal / proteinFood.kcal;
         const g = Math.min(Math.max(Math.round(r * proteinFood.amount / 10) * 10, 50), 200);
         const scale = g / proteinFood.amount;
-        portions.push({
-          food: proteinFood, grams: g, role: '단백질',
-          kcal:    Math.round(proteinFood.kcal    * scale),
-          protein: Math.round(proteinFood.protein * scale * 10) / 10,
-          carb:    Math.round(proteinFood.carb    * scale * 10) / 10,
-          fat:     Math.round(proteinFood.fat     * scale * 10) / 10,
-        });
+        portions.push({ food: proteinFood, grams: g, role: '단백질', kcal: Math.round(proteinFood.kcal * scale), protein: Math.round(proteinFood.protein * scale * 10) / 10, carb: Math.round(proteinFood.carb * scale * 10) / 10, fat: Math.round(proteinFood.fat * scale * 10) / 10 });
       } else {
-        const fallbackProteins = PRIORITY_PROTEINS.filter(p =>
-          !usedNames.has(p) && !badWords.some(b => b && p.includes(b))
-        );
+        const fallbackProteins = PRIORITY_PROTEINS.filter(p => !usedNames.has(p) && !badWords.some(b => b && p.includes(b)));
         const pName = fallbackProteins[di % fallbackProteins.length] || '닭가슴살';
         usedNames.add(pName);
-        portions.push({
-          food: { name: pName }, grams: 100, role: '단백질',
-          kcal:    proteinKcal,
-          protein: Math.round(proteinKcal * 0.85 / 4),
-          carb: 2, fat: Math.round(proteinKcal * 0.05 / 9),
-        });
+        portions.push({ food: { name: pName }, grams: 100, role: '단백질', kcal: proteinKcal, protein: Math.round(proteinKcal * 0.85 / 4), carb: 2, fat: Math.round(proteinKcal * 0.05 / 9) });
       }
 
-      // ── [1] 탄수화물 슬롯 ─────────────────────────────────────────
-      // ✅ Fix: carbSlotRatio(끼니별 비율) 사용 → 저녁 0.30 / 아침·점심 0.40 반영
+      // [1] 탄수화물
       const carbKcal = Math.round(mealKcal * carbSlotRatio);
       const carbName = pickCarbFromPool(mt, usedCarbsByMeal);
-      const carbFood = (typeof FOODS_DB !== 'undefined')
-        ? FOODS_DB.find(f => f.name?.includes(carbName) && f.meals?.includes(mt))
-        : null;
-
+      const carbFood = (typeof FOODS_DB !== 'undefined') ? FOODS_DB.find(f => f.name?.includes(carbName) && f.meals?.includes(mt)) : null;
       if (carbFood) {
         const r = carbKcal / carbFood.kcal;
         const g = Math.min(Math.max(Math.round(r * carbFood.amount / 10) * 10, 30), 250);
         const scale = g / carbFood.amount;
-        portions.push({
-          food: carbFood, grams: g, role: '탄수화물',
-          kcal:    Math.round(carbFood.kcal    * scale),
-          protein: Math.round(carbFood.protein * scale * 10) / 10,
-          carb:    Math.round(carbFood.carb    * scale * 10) / 10,
-          fat:     Math.round(carbFood.fat     * scale * 10) / 10,
-        });
+        portions.push({ food: carbFood, grams: g, role: '탄수화물', kcal: Math.round(carbFood.kcal * scale), protein: Math.round(carbFood.protein * scale * 10) / 10, carb: Math.round(carbFood.carb * scale * 10) / 10, fat: Math.round(carbFood.fat * scale * 10) / 10 });
       } else {
-        portions.push({
-          food: { name: carbName }, grams: 130, role: '탄수화물',
-          kcal: carbKcal,
-          protein: Math.round(carbKcal * 0.07 / 4),
-          carb:    Math.round(carbKcal * 0.85 / 4),
-          fat:     Math.round(carbKcal * 0.01 / 9),
-        });
+        portions.push({ food: { name: carbName }, grams: 130, role: '탄수화물', kcal: carbKcal, protein: Math.round(carbKcal * 0.07 / 4), carb: Math.round(carbKcal * 0.85 / 4), fat: Math.round(carbKcal * 0.01 / 9) });
       }
 
-     
-     // ── [2][3][4] 채소 슬롯 (개별 1~3종) ─────────────────────────
+      // [2][3][4] 채소 슬롯 (개별 1~3종)
       const veggieSlots    = structure.slice(2);
       const usedVeggiesDay = new Set();
-
       veggieSlots.forEach(slot => {
-        // optional 슬롯은 35% 확률로 빈 슬롯
-        if (slot.optional && Math.random() < 0.35) {
-          portions.push({
-            food: null, grams: 0, role: slot.role,
-            kcal: 0, protein: 0, carb: 0, fat: 0,
-            isEmpty: true,
-          });
-          return;
-        }
-
+        if (slot.optional && Math.random() < 0.35) { portions.push({ food: null, grams: 0, role: slot.role, kcal: 0, protein: 0, carb: 0, fat: 0, isEmpty: true }); return; }
         const slotKcal = Math.round(mealKcal * slot.ratio);
         const vegFood  = pickSingleVeggie(mt, badWords, usedVeggiesDay);
-
         if (vegFood) {
           const r     = slotKcal / vegFood.kcal;
           const g     = Math.min(Math.max(Math.round(r * vegFood.amount / 10) * 10, 50), 200);
           const scale = g / vegFood.amount;
-          portions.push({
-            food:    vegFood,
-            grams:   g,
-            role:    slot.role,
-            kcal:    Math.round(vegFood.kcal    * scale),
-            protein: Math.round(vegFood.protein * scale * 10) / 10,
-            carb:    Math.round(vegFood.carb    * scale * 10) / 10,
-            fat:     Math.round(vegFood.fat     * scale * 10) / 10,
-          });
+          portions.push({ food: vegFood, grams: g, role: slot.role, kcal: Math.round(vegFood.kcal * scale), protein: Math.round(vegFood.protein * scale * 10) / 10, carb: Math.round(vegFood.carb * scale * 10) / 10, fat: Math.round(vegFood.fat * scale * 10) / 10 });
         } else {
-          portions.push({
-            food: null, grams: 0, role: slot.role,
-            kcal: 0, protein: 0, carb: 0, fat: 0,
-            isEmpty: true,
-          });
+          portions.push({ food: null, grams: 0, role: slot.role, kcal: 0, protein: 0, carb: 0, fat: 0, isEmpty: true });
         }
       });
 
       const totalKcal = portions.reduce((s, p) => s + p.kcal, 0);
       dayMeals[mt] = { portions, totalKcal };
     }
-
     weekPlan.push({ day: days[di], dayIndex: di + 1, meals: dayMeals, mealTypes });
   }
 
-  return {
-    weekPlan,
-    mealTypes,
-    targetCal,
-    generalMealGuide: GENERAL_MEAL_GUIDE,
-    hasGeneralMealSlots: needsLunchSlot || needsDinnerSlot,
-  };
+  return { weekPlan, mealTypes, targetCal, generalMealGuide: GENERAL_MEAL_GUIDE, hasGeneralMealSlots: needsLunchSlot || needsDinnerSlot };
 }
-// ── 식재료 교체 모달 ──
-let swapTarget = null; // { dayIdx, mealType, roleIdx }
+
+// ──────────────────────────────────────────
+// UI 렌더링
+// ──────────────────────────────────────────
+let currentMemberId = '';
+let currentData = null;
+let currentCalc = null;
+let currentMissions = null;
+let currentMealPlan = null;
+let currentWorkout = null;
+
+function showTab(id, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('tab-' + id).classList.add('on');
+  el.classList.add('on');
+}
+
+function renderSummary(d, calc) {
+  const initials = (d.이름 || '??').slice(0, 2);
+  const tags = [{ text: d.목표 || '-', color: 'pink' }, { text: calc.userType, color: 'blue' }, { text: d.홈트가능 === '가능' ? '홈트 가능' : '홈트 어려움', color: 'green' }];
+  document.getElementById('member-bar').innerHTML = `
+    <div class="avatar">${initials}</div>
+    <div>
+      <div class="member-name">${d.이름 || '-'}</div>
+      <div class="member-sub">${d.나이 || '-'}세 · ${d.성별 || '-'} · ${d.프로그램 || '온라인 코칭'}</div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+        ${tags.map(t => `<span class="tag" style="background:var(--${t.color === 'pink' ? 'pink' : t.color === 'blue' ? 'blue' : 'green'}-bg);color:var(--${t.color === 'pink' ? 'pink-dark' : t.color === 'blue' ? 'blue' : 'green'})">${t.text}</span>`).join('')}
+      </div>
+    </div>`;
+
+  document.getElementById('body-metrics').innerHTML = [
+    { label: '키', val: d.키, unit: 'cm' }, { label: '체중', val: d.현재체중, unit: 'kg' },
+    { label: '체지방률', val: d.체지방률, unit: '%' }, { label: '골격근량', val: d.골격근량, unit: 'kg' },
+  ].map(m => `<div class="metric"><div class="metric-label">${m.label}</div><div class="metric-val">${m.val || '-'}<span>${m.unit}</span></div></div>`).join('');
+
+  document.getElementById('calorie-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">기초대사량 (BMR)</div><div class="metric-val">${calc.bmr.toLocaleString()}<span>kcal</span></div></div>
+    <div class="metric"><div class="metric-label">활동대사량 (TDEE)</div><div class="metric-val">${calc.tdee.toLocaleString()}<span>kcal</span></div></div>
+    <div class="metric" style="border:1px solid var(--pink);"><div class="metric-label">목표 섭취 칼로리</div><div class="metric-val highlight">${calc.targetCal.toLocaleString()}<span>kcal</span></div></div>`;
+
+  document.getElementById('macro-section').innerHTML = `
+    <div class="macro-bar"><div class="bar-p" style="width:${calc.proteinPct}%"></div><div class="bar-c" style="width:${calc.carbPct}%"></div><div class="bar-f" style="width:${calc.fatPct}%"></div></div>
+    <div class="macro-legend">
+      <span><span class="dot" style="background:var(--pink)"></span>단백질 ${calc.protein}g (${calc.proteinPct}%)</span>
+      <span><span class="dot" style="background:#F4C0D1"></span>탄수화물 ${calc.carb}g (${calc.carbPct}%)</span>
+      <span><span class="dot" style="background:#FAC775"></span>지방 ${calc.fat}g (${calc.fatPct}%)</span>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--text3);">활동계수 ${calc.totalFactor} · ${calc.safetyFlag ? '⚠️ Safety Flag ON (적자 완화 적용)' : 'Safety Flag OFF'} · 회원유형: ${calc.userType}</div>`;
+
+  const dietBadge = calc.dietRisk >= 4 ? 'badge-red' : calc.dietRisk >= 2 ? 'badge-amber' : 'badge-green';
+  const recBadge  = calc.recoveryRisk >= 4 ? 'badge-red' : calc.recoveryRisk >= 2 ? 'badge-amber' : 'badge-green';
+  const horBadge  = calc.hormoneRisk >= 3 ? 'badge-red' : calc.hormoneRisk >= 2 ? 'badge-amber' : 'badge-green';
+  document.getElementById('risk-section').innerHTML = `
+    <div class="risk-row">
+      <span class="badge ${dietBadge}">식습관 위험 ${calc.dietRisk}/8</span>
+      <span class="badge ${recBadge}">회복 위험 ${calc.recoveryRisk}/6</span>
+      <span class="badge ${horBadge}">호르몬 위험 ${calc.hormoneRisk}/4</span>
+    </div>`;
+}
+
+function renderMissions(missions) {
+  const weeks = ['week1', 'week2', 'week3', 'week4'];
+  const labels = ['1주차', '2주차', '3주차', '4주차'];
+  document.getElementById('mission-section').innerHTML = weeks.map((w, i) => `
+    <div class="week-block">
+      <div class="week-header"><span class="week-num">${labels[i]}</span><span class="week-theme">${missions[w].theme}</span></div>
+      <div class="week-body">
+        <div class="mission-row"><span class="mbadge mbadge-w">주간미션 1</span><span class="mission-txt">${missions[w].mission1}</span></div>
+        <div class="mission-row"><span class="mbadge mbadge-w">주간미션 2</span><span class="mission-txt">${missions[w].mission2}</span></div>
+        <div class="mission-row"><span class="mbadge mbadge-df">데일리 고정</span><span class="mission-txt">${missions[w].dailyFix}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+let swapTarget = null;
 
 function openSwap(dayIdx, mealType, roleIdx) {
   swapTarget = { dayIdx, mealType, roleIdx };
@@ -1143,10 +786,7 @@ function openSwap(dayIdx, mealType, roleIdx) {
   document.getElementById('swap-modal').style.display = 'flex';
 }
 
-function closeSwap() {
-  document.getElementById('swap-modal').style.display = 'none';
-  swapTarget = null;
-}
+function closeSwap() { document.getElementById('swap-modal').style.display = 'none'; swapTarget = null; }
 
 function renderSwapList(cats, mealType, q) {
   const list = FOODS_DB.filter(f => {
@@ -1155,7 +795,6 @@ function renderSwapList(cats, mealType, q) {
     if (q && !f.name.includes(q)) return false;
     return true;
   }).slice(0, 30);
-
   document.getElementById('swap-list').innerHTML = list.map(f => `
     <div class="swap-item" onclick="applySwap('${f.name}')">
       <div style="font-size:13px;font-weight:500;color:var(--text);">${f.name}</div>
@@ -1168,18 +807,15 @@ function applySwap(foodName) {
   const { dayIdx, mealType, roleIdx } = swapTarget;
   const food = FOODS_DB.find(f => f.name === foodName);
   if (!food) return;
-
   const slot = MEAL_STRUCTURE[mealType][roleIdx];
   const mealKcal = Math.round(currentMealPlan.targetCal * MEAL_RATIO[mealType]);
   const slotKcal = Math.round(mealKcal * slot.ratio);
   const portion = calcPortion(food, slotKcal);
   if (!portion) return;
-
   const day = currentMealPlan.weekPlan[dayIdx];
   const oldPortions = day.meals[mealType].portions;
   oldPortions[roleIdx] = { ...portion, role: slot.role };
   day.meals[mealType].totalKcal = oldPortions.reduce((s, p) => s + p.kcal, 0);
-
   closeSwap();
   renderMeal(currentMealPlan);
 }
@@ -1189,25 +825,15 @@ function renderMeal(mealPlan) {
   const d = currentData;
   const likes = d?.좋아하는음식 || '';
   const dislikes = d?.싫어하는음식 || '';
-
   let html = '';
   if (likes || dislikes) {
-    html += `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;padding:8px 12px;background:var(--cream);border-radius:8px;">
-      좋아하는 음식: <b>${likes || '-'}</b> &nbsp;·&nbsp; 못 먹는 음식: <b>${dislikes || '-'}</b>
-    </div>`;
+    html += `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;padding:8px 12px;background:var(--cream);border-radius:8px;">좋아하는 음식: <b>${likes || '-'}</b> &nbsp;·&nbsp; 못 먹는 음식: <b>${dislikes || '-'}</b></div>`;
   }
-
-  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">
-    목표 ${mealPlan.targetCal}kcal · 식재료를 클릭하면 다른 식재료로 교체할 수 있어요.
-  </div>`;
+  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">목표 ${mealPlan.targetCal}kcal · 식재료를 클릭하면 다른 식재료로 교체할 수 있어요.</div>`;
 
   mealPlan.weekPlan.forEach((day, di) => {
     const totalKcal = Object.values(day.meals).reduce((s, m) => s + m.totalKcal, 0);
-    html += `<div class="day-block">
-      <div class="day-header">
-        <span class="day-title">Day ${day.dayIndex} (${day.day})</span>
-        <span class="day-kcal">${totalKcal}kcal</span>
-      </div>`;
+    html += `<div class="day-block"><div class="day-header"><span class="day-title">Day ${day.dayIndex} (${day.day})</span><span class="day-kcal">${totalKcal}kcal</span></div>`;
 
     day.mealTypes.forEach(mt => {
       const meal = day.meals[mt];
@@ -1219,88 +845,43 @@ function renderMeal(mealPlan) {
         <div style="display:flex;flex-wrap:wrap;gap:6px;">`;
 
       meal.portions.forEach((p, pi) => {
-        // ── 빈 슬롯 ──
         if (p.isEmpty) {
-          html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})"
-            style="background:#F8F8F8;padding:5px 12px;border-radius:16px;font-size:12px;
-                   cursor:pointer;border:1.5px dashed #D0C8C0;color:#B0A090;">
-            + 채소 추가
-          </div>`;
+          html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:#F8F8F8;padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px dashed #D0C8C0;color:#B0A090;">+ 채소 추가</div>`;
           return;
         }
-
-        // ── 일반 슬롯 ──
-        const catColor = {
-          '단백질':'#FFF0F5','육류':'#FCE4EC','해산물':'#E0F7FA',
-          '탄수화물':'#FFF8E1','곡류':'#FFFDE7','채소':'#F1F8E9',
-          '과일':'#F9FBE7','유제품':'#E3F2FD','지방':'#FFF3E0','야채':'#F1F8E9',
-        }[p.food?.category] || '#F5F5F5';
-
-        html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})"
-          style="background:${catColor};padding:5px 10px;border-radius:16px;font-size:12px;
-                 cursor:pointer;border:1px solid rgba(0,0,0,0.06);">
+        const catColor = { '단백질':'#FFF0F5','육류':'#FCE4EC','해산물':'#E0F7FA','탄수화물':'#FFF8E1','곡류':'#FFFDE7','채소':'#F1F8E9','과일':'#F9FBE7','유제품':'#E3F2FD','지방':'#FFF3E0','야채':'#F1F8E9' }[p.food?.category] || '#F5F5F5';
+        html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:${catColor};padding:5px 10px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);">
           <span style="font-weight:500;color:var(--text);">${p.food.name}</span>
           <span style="color:var(--text3);margin-left:4px;">${p.grams}${p.food.unit || 'g'}</span>
           <span style="color:var(--pink);margin-left:4px;">${p.kcal}kcal</span>
         </div>`;
       });
-
       html += `</div></div>`;
     });
-
     html += `</div>`;
   });
 
-  // 자유식 가이드
-  html += `<div class="free-box">
-    <div class="free-title">자유식 가이드 (주 1회, 1끼)</div>
-    <div class="free-list">
-      1. 단백질 메뉴 먼저 — 고기, 생선, 두부 중 하나 반드시 포함<br>
-      2. 음료는 물 또는 제로음료로<br>
-      3. 탄수화물 + 지방 과다 조합 피하기<br>
-      4. 다음 끼니 굶지 않기 — 정상식 복귀<br>
-      5. 추천: 샤브샤브, 초밥, 삼겹살+밥 반공기, 파스타(단백질 추가)
-    </div>
-  </div>`;
-
+  html += `<div class="free-box"><div class="free-title">자유식 가이드 (주 1회, 1끼)</div><div class="free-list">1. 단백질 메뉴 먼저 — 고기, 생선, 두부 중 하나 반드시 포함<br>2. 음료는 물 또는 제로음료로<br>3. 탄수화물 + 지방 과다 조합 피하기<br>4. 다음 끼니 굶지 않기 — 정상식 복귀<br>5. 추천: 샤브샤브, 초밥, 삼겹살+밥 반공기, 파스타(단백질 추가)</div></div>`;
   document.getElementById('meal-section').innerHTML = html;
 }
 
 function renderWorkout(workoutLevel) {
   const plan = WORKOUT_PLANS[workoutLevel];
   document.getElementById('workout-level-label').textContent = `${plan.level} 기준 · 주 5회 운동 + 2회 스트레칭/휴식`;
-
   const days = ['월', '화', '수', '목', '금', '토', '일'];
   const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-
   const rows = plan.weeks.map((w, wi) => `
-    <tr>
-      <td class="wk-label">${wi+1}주</td>
-      ${dayKeys.map(dk => {
-        const vid = VIDEOS[w[dk]];
-        if (!vid) return '<td><span class="wt-rest">휴식</span></td>';
-        return `<td><a href="${vid.url}" target="_blank" style="text-decoration:none;"><span class="wt wt-${vid.type}">${vid.type === 'tabata' ? '타바타' : vid.type === 'lower' ? '하체' : vid.type === 'upper' ? '상체' : vid.type === 'core' ? '코어' : vid.type === 'strength' ? '전신근력' : '스트레칭'}</span><span class="day-sub">${vid.label}</span></a></td>`;
-      }).join('')}
-    </tr>`).join('');
-
-  document.getElementById('workout-section').innerHTML = `
-    <table class="workout-table">
-      <tr><th style="width:44px;">주차</th>${days.map(d => `<th>${d}</th>`).join('')}</tr>
-      ${rows}
-    </table>`;
-
-  // workout 데이터 저장
-  currentWorkout = {
-    level: plan.level,
-    week1: plan.weeks[0], week2: plan.weeks[1],
-    week3: plan.weeks[2], week4: plan.weeks[3],
-  };
-  // 각 주차에 텍스트 레이블 추가
+    <tr><td class="wk-label">${wi+1}주</td>
+    ${dayKeys.map(dk => {
+      const vid = VIDEOS[w[dk]];
+      if (!vid) return '<td><span class="wt-rest">휴식</span></td>';
+      const typeLabel = { tabata:'타바타', lower:'하체', upper:'상체', core:'코어', strength:'전신근력', stretch:'스트레칭' }[vid.type];
+      return `<td><a href="${vid.url}" target="_blank" style="text-decoration:none;"><span class="wt wt-${vid.type}">${typeLabel}</span><span class="day-sub">${vid.label}</span></a></td>`;
+    }).join('')}</tr>`).join('');
+  document.getElementById('workout-section').innerHTML = `<table class="workout-table"><tr><th style="width:44px;">주차</th>${days.map(d => `<th>${d}</th>`).join('')}</tr>${rows}</table>`;
+  currentWorkout = { level: plan.level, week1: plan.weeks[0], week2: plan.weeks[1], week3: plan.weeks[2], week4: plan.weeks[3] };
   ['week1','week2','week3','week4'].forEach((wk, wi) => {
-    dayKeys.forEach(dk => {
-      const vid = VIDEOS[plan.weeks[wi][dk]];
-      currentWorkout[wk][dk] = vid ? `${vid.label} (${plan.weeks[wi][dk]})` : '휴식';
-    });
+    dayKeys.forEach(dk => { const vid = VIDEOS[plan.weeks[wi][dk]]; currentWorkout[wk][dk] = vid ? `${vid.label} (${plan.weeks[wi][dk]})` : '휴식'; });
   });
 }
 
@@ -1312,40 +893,28 @@ async function loadMembers() {
     const res = await fetch('/api/members');
     const { members } = await res.json();
     const sel = document.getElementById('member-select');
-    members.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = m.name;
-      sel.appendChild(opt);
-    });
-  } catch (e) {
-    console.error(e);
-  }
+    members.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.name; sel.appendChild(opt); });
+  } catch (e) { console.error(e); }
 }
 
 async function loadMember() {
   const sel = document.getElementById('member-select');
   const memberId = sel.value;
   if (!memberId) return alert('회원을 선택해주세요.');
-
   currentMemberId = memberId;
   document.getElementById('loading').style.display = 'block';
   document.getElementById('result-area').style.display = 'none';
-
   try {
     const res = await fetch(`/api/member-data?memberId=${memberId}`);
     const { data } = await res.json();
-
     currentData = data;
     currentCalc = calcAll(data);
     currentMissions = generateMissions(data, currentCalc);
     currentMealPlan = generateWeekMeal(currentCalc, data);
-
     renderSummary(data, currentCalc);
     renderMissions(currentMissions);
     renderMeal(currentMealPlan);
     renderWorkout(currentCalc.workoutLevel);
-
     document.getElementById('loading').style.display = 'none';
     document.getElementById('result-area').style.display = 'block';
   } catch (e) {
@@ -1359,39 +928,24 @@ async function saveToNotion() {
   const msg = document.getElementById('save-msg');
   btn.disabled = true;
   btn.textContent = '저장 중...';
-
   try {
     const res = await fetch('/api/save-coaching', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        memberId: currentMemberId,
-        result: {
-          memberInfo: currentData,
-          calc: currentCalc,
-          missions: currentMissions,
-          mealPlan: currentMealPlan,
-          workout: currentWorkout,
-        }
-      })
+      body: JSON.stringify({ memberId: currentMemberId, result: { memberInfo: currentData, calc: currentCalc, missions: currentMissions, mealPlan: currentMealPlan, workout: currentWorkout } })
     });
-   // 이렇게
-const { success, pageId, memberId: savedMemberId } = await res.json();
-   // 수정
-if (success) {
-  msg.textContent = '✅ 노션에 저장 완료!';
-  btn.textContent = '저장 완료';
-
-  // 회원용 읽기 링크 생성
-// 이렇게
-const memberUrl = `https://rara-coach.vercel.app/member.html?memberId=${savedMemberId}`;
-  const linkEl = document.createElement('a');
-  linkEl.href = memberUrl;
-  linkEl.target = '_blank';
-  linkEl.textContent = '📋 회원용 링크 열기';
-  linkEl.style.cssText = 'display:block; margin-top:10px; color:#e75480; font-weight:bold; text-decoration:underline;';
-  msg.after(linkEl);
-}
+    const { success, pageId, memberId: savedMemberId } = await res.json();
+    if (success) {
+      msg.textContent = '✅ 노션에 저장 완료!';
+      btn.textContent = '저장 완료';
+      const memberUrl = `https://rara-coach.vercel.app/member.html?memberId=${savedMemberId}`;
+      const linkEl = document.createElement('a');
+      linkEl.href = memberUrl;
+      linkEl.target = '_blank';
+      linkEl.textContent = '📋 회원용 링크 열기';
+      linkEl.style.cssText = 'display:block; margin-top:10px; color:#e75480; font-weight:bold; text-decoration:underline;';
+      msg.after(linkEl);
+    }
   } catch (e) {
     msg.textContent = '❌ 저장 실패: ' + e.message;
     btn.disabled = false;
