@@ -300,6 +300,7 @@ const FOODS = [
     "meals": "간식",
     "note": "1개=150g"
   },
+  // ── 채소 — 아침 추가 ──────────────────────────────────────
   {
     "name": "브로콜리(생)",
     "category": "채소",
@@ -309,7 +310,7 @@ const FOODS = [
     "protein": 2.8,
     "carb": 5.2,
     "fat": 0.4,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -321,7 +322,7 @@ const FOODS = [
     "protein": 2.9,
     "carb": 1.8,
     "fat": 0.3,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -333,7 +334,7 @@ const FOODS = [
     "protein": 1.7,
     "carb": 5.1,
     "fat": 0.1,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -345,7 +346,7 @@ const FOODS = [
     "protein": 0.7,
     "carb": 2.5,
     "fat": 0.1,
-    "meals": "간식,저녁",
+    "meals": "아침,간식,저녁",
     "note": ""
   },
   {
@@ -357,7 +358,7 @@ const FOODS = [
     "protein": 0.9,
     "carb": 3.9,
     "fat": 0.2,
-    "meals": "간식",
+    "meals": "아침,간식",
     "note": ""
   },
   {
@@ -369,7 +370,7 @@ const FOODS = [
     "protein": 1.4,
     "carb": 2.1,
     "fat": 0.3,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -381,7 +382,7 @@ const FOODS = [
     "protein": 1.0,
     "carb": 5.9,
     "fat": 0.2,
-    "meals": "간식,저녁",
+    "meals": "아침,간식,저녁",
     "note": ""
   },
   {
@@ -393,7 +394,7 @@ const FOODS = [
     "protein": 0.9,
     "carb": 9.4,
     "fat": 0.2,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -405,7 +406,7 @@ const FOODS = [
     "protein": 1.1,
     "carb": 8.6,
     "fat": 0.1,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -417,7 +418,7 @@ const FOODS = [
     "protein": 2.7,
     "carb": 5.5,
     "fat": 0.2,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -1056,6 +1057,7 @@ const FOODS = [
     "meals": "점심,저녁",
     "note": "1장=5g"
   },
+  // ── 채소 (아침 제외 유지) ──────────────────────────────────
   {
     "name": "고추(풋)",
     "category": "채소",
@@ -1113,7 +1115,7 @@ const FOODS = [
     "protein": 1.1,
     "carb": 2.9,
     "fat": 0.1,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -1197,7 +1199,7 @@ const FOODS = [
     "protein": 2.5,
     "carb": 4.5,
     "fat": 0.4,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -1209,7 +1211,7 @@ const FOODS = [
     "protein": 2.7,
     "carb": 7.2,
     "fat": 0.3,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -1221,7 +1223,7 @@ const FOODS = [
     "protein": 2.4,
     "carb": 3.9,
     "fat": 0.2,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
@@ -1233,7 +1235,7 @@ const FOODS = [
     "protein": 0.6,
     "carb": 2.6,
     "fat": 0.2,
-    "meals": "간식,저녁",
+    "meals": "아침,간식,저녁",
     "note": ""
   },
   {
@@ -1257,7 +1259,7 @@ const FOODS = [
     "protein": 1.5,
     "carb": 5.5,
     "fat": 0.2,
-    "meals": "점심,저녁",
+    "meals": "아침,점심,저녁",
     "note": ""
   },
   {
