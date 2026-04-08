@@ -766,25 +766,32 @@ async function loadFoodsDB() {
 // ── 끼니별 칼로리 비율 ──
 const MEAL_RATIO = { 아침: 0.25, 점심: 0.35, 간식: 0.10, 저녁: 0.30 };
 
+// 기존 MEAL_STRUCTURE 전체를 아래로 교체
 const MEAL_STRUCTURE = {
   아침: [
-    { role: '단백질', cats: ['단백질','유제품','육류'], ratio: 0.40 },
-    { role: '탄수화물', cats: ['탄수화물','곡류'], ratio: 0.40 },
-    { role: '채소/과일', cats: ['채소','과일'], ratio: 0.20 },
+    { role: '단백질',   cats: ['단백질','유제품','육류'],  ratio: 0.40 },
+    { role: '탄수화물', cats: ['탄수화물','곡류'],         ratio: 0.40 },
+    { role: '채소1',    cats: ['채소','과일'],             ratio: 0.10 },
+    { role: '채소2',    cats: ['채소','과일'],             ratio: 0.07 },
+    { role: '채소3',    cats: ['채소','과일'],             ratio: 0.03, optional: true },
   ],
   점심: [
-    { role: '단백질', cats: ['단백질','육류','해산물'], ratio: 0.35 },
-    { role: '탄수화물', cats: ['탄수화물','곡류'], ratio: 0.40 },
-    { role: '채소', cats: ['채소'], ratio: 0.25 },
+    { role: '단백질',   cats: ['단백질','육류','해산물'],  ratio: 0.35 },
+    { role: '탄수화물', cats: ['탄수화물','곡류'],         ratio: 0.40 },
+    { role: '채소1',    cats: ['채소'],                    ratio: 0.13 },
+    { role: '채소2',    cats: ['채소'],                    ratio: 0.08 },
+    { role: '채소3',    cats: ['채소'],                    ratio: 0.04, optional: true },
   ],
   간식: [
-    { role: '단백질', cats: ['단백질','유제품'], ratio: 0.55 },
-    { role: '과일', cats: ['과일','탄수화물'], ratio: 0.45 },
+    { role: '단백질',   cats: ['단백질','유제품'],         ratio: 0.55 },
+    { role: '과일',     cats: ['과일','탄수화물'],         ratio: 0.45 },
   ],
   저녁: [
-    { role: '단백질', cats: ['단백질','육류','해산물'], ratio: 0.40 },
-    { role: '탄수화물', cats: ['탄수화물','곡류'], ratio: 0.30 },
-    { role: '채소', cats: ['채소'], ratio: 0.30 },
+    { role: '단백질',   cats: ['단백질','육류','해산물'],  ratio: 0.40 },
+    { role: '탄수화물', cats: ['탄수화물','곡류'],         ratio: 0.30 },
+    { role: '채소1',    cats: ['채소'],                    ratio: 0.15 },
+    { role: '채소2',    cats: ['채소'],                    ratio: 0.10 },
+    { role: '채소3',    cats: ['채소'],                    ratio: 0.05, optional: true },
   ],
 };
 
@@ -877,6 +884,26 @@ const GENERAL_MEAL_GUIDE = `🍱 일반식 선택 가이드
   const combo = pool[Math.floor(Math.random() * pool.length)];
   usedCombos.add(combo.names.join(','));
   return combo;
+}
+  function pickSingleVeggie(mealType, badWords, usedVeggiesDay) {
+  const candidates = (typeof FOODS_DB !== 'undefined' ? FOODS_DB : []).filter(f => {
+    if (f.category !== '채소' && f.category !== '과일') return false;
+    if (!f.meals?.includes(mealType)) return false;
+    if (badWords.some(b => b && f.name?.includes(b))) return false;
+    if (usedVeggiesDay.has(f.name)) return false;
+    return true;
+  });
+  if (!candidates.length) {
+    const fallback = (typeof FOODS_DB !== 'undefined' ? FOODS_DB : []).filter(f =>
+      (f.category === '채소' || f.category === '과일') &&
+      f.meals?.includes(mealType) &&
+      !badWords.some(b => b && f.name?.includes(b))
+    );
+    return fallback[Math.floor(Math.random() * fallback.length)] || null;
+  }
+  const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+  usedVeggiesDay.add(chosen.name);
+  return chosen;
 }
 
 function pickCarbFromPool(mealType, usedCarbsByMeal) {
@@ -1048,21 +1075,45 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
         });
       }
 
-      // ── [2] 야채 슬롯 ─────────────────────────────────────────────
-      const veggieKcal  = mealKcal - portions.reduce((s, p) => s + p.kcal, 0);
-      const veggieCombo = pickVeggieCombo(badWords, usedCombos);
-      const veggieLabel = veggieCombo.names.join(' + ');
-      const veggieG     = Math.min(Math.max(Math.round(veggieKcal / veggieCombo.kcalPer100 * 100), 100), 250);
-      const vScale      = veggieG / 100;
-      portions.push({
-        // ✅ Fix: unit: 'g' 추가 → "250undefined" 방지
-        food: { name: veggieLabel, category: '야채', unit: 'g' },
-        grams:   veggieG,
-        role:    '야채',
-        kcal:    Math.round(veggieCombo.kcalPer100 * vScale),
-        protein: Math.round(veggieCombo.protein    * vScale * 10) / 10,
-        carb:    Math.round(veggieCombo.carb       * vScale * 10) / 10,
-        fat:     Math.round(veggieCombo.fat        * vScale * 10) / 10,
+     
+     // ── [2][3][4] 채소 슬롯 (개별 1~3종) ─────────────────────────
+      const veggieSlots    = structure.slice(2);
+      const usedVeggiesDay = new Set();
+
+      veggieSlots.forEach(slot => {
+        // optional 슬롯은 35% 확률로 빈 슬롯
+        if (slot.optional && Math.random() < 0.35) {
+          portions.push({
+            food: null, grams: 0, role: slot.role,
+            kcal: 0, protein: 0, carb: 0, fat: 0,
+            isEmpty: true,
+          });
+          return;
+        }
+
+        const slotKcal = Math.round(mealKcal * slot.ratio);
+        const vegFood  = pickSingleVeggie(mt, badWords, usedVeggiesDay);
+
+        if (vegFood) {
+          const r     = slotKcal / vegFood.kcal;
+          const g     = Math.min(Math.max(Math.round(r * vegFood.amount / 10) * 10, 50), 200);
+          const scale = g / vegFood.amount;
+          portions.push({
+            food:    vegFood,
+            grams:   g,
+            role:    slot.role,
+            kcal:    Math.round(vegFood.kcal    * scale),
+            protein: Math.round(vegFood.protein * scale * 10) / 10,
+            carb:    Math.round(vegFood.carb    * scale * 10) / 10,
+            fat:     Math.round(vegFood.fat     * scale * 10) / 10,
+          });
+        } else {
+          portions.push({
+            food: null, grams: 0, role: slot.role,
+            kcal: 0, protein: 0, carb: 0, fat: 0,
+            isEmpty: true,
+          });
+        }
       });
 
       const totalKcal = portions.reduce((s, p) => s + p.kcal, 0);
@@ -1168,16 +1219,28 @@ function renderMeal(mealPlan) {
         <div style="display:flex;flex-wrap:wrap;gap:6px;">`;
 
       meal.portions.forEach((p, pi) => {
+        // ── 빈 슬롯 ──
+        if (p.isEmpty) {
+          html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})"
+            style="background:#F8F8F8;padding:5px 12px;border-radius:16px;font-size:12px;
+                   cursor:pointer;border:1.5px dashed #D0C8C0;color:#B0A090;">
+            + 채소 추가
+          </div>`;
+          return;
+        }
+
+        // ── 일반 슬롯 ──
         const catColor = {
           '단백질':'#FFF0F5','육류':'#FCE4EC','해산물':'#E0F7FA',
           '탄수화물':'#FFF8E1','곡류':'#FFFDE7','채소':'#F1F8E9',
-          '과일':'#F9FBE7','유제품':'#E3F2FD','지방':'#FFF3E0',
-        }[p.food.category] || '#F5F5F5';
+          '과일':'#F9FBE7','유제품':'#E3F2FD','지방':'#FFF3E0','야채':'#F1F8E9',
+        }[p.food?.category] || '#F5F5F5';
 
         html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})"
-          style="background:${catColor};padding:5px 10px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);">
+          style="background:${catColor};padding:5px 10px;border-radius:16px;font-size:12px;
+                 cursor:pointer;border:1px solid rgba(0,0,0,0.06);">
           <span style="font-weight:500;color:var(--text);">${p.food.name}</span>
-          <span style="color:var(--text3);margin-left:4px;">${p.grams}${p.food.unit}</span>
+          <span style="color:var(--text3);margin-left:4px;">${p.grams}${p.food.unit || 'g'}</span>
           <span style="color:var(--pink);margin-left:4px;">${p.kcal}kcal</span>
         </div>`;
       });
