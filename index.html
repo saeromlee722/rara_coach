@@ -932,9 +932,9 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
   
   
   function generateWeekMeal(calc, memberData) {
-  const targetCal   = calc.targetCal;
-  const macroRatio  = calc.macroRatio || { carb: 0.40, protein: 0.30, fat: 0.30 };
-  const badWords    = [
+  const targetCal  = calc.targetCal;
+  const macroRatio = calc.macroRatio || { carb: 0.40, protein: 0.30, fat: 0.30 };
+  const badWords   = [
     ...(memberData.싫어하는음식 || '').split(/[,，\s]+/),
     ...((memberData.알레르기 || '') !== '없음'
       ? (memberData.알레르기 || '').split(/[,，\s]+/) : [])
@@ -946,7 +946,7 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
     : ['아침', '점심', '저녁'];
 
   // 일반식 슬롯 적용 조건
-  const eatOutFreq   = memberData.외식빈도 || '';
+  const eatOutFreq    = memberData.외식빈도 || '';
   const hasFamilyMeal = (memberData.가족식사 === '예') || (memberData.가족식사 || '').includes('가족');
   const needsLunchSlot  = eatOutFreq.includes('주 3') || eatOutFreq.includes('주 4')
                         || eatOutFreq.includes('주 5') || eatOutFreq.includes('매일');
@@ -958,9 +958,7 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
   const usedCombos      = new Set();
   const usedNames       = new Set();
 
-  const MEAL_RATIO_MAP = {
-    아침: 0.30, 점심: 0.35, 저녁: 0.35, 간식: 0.10,
-  };
+  const MEAL_RATIO_MAP = { 아침: 0.30, 점심: 0.35, 저녁: 0.35, 간식: 0.10 };
 
   const days    = ['월', '화', '수', '목', '금', '토', '일'];
   const weekPlan = [];
@@ -971,9 +969,8 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
     for (const mt of mealTypes) {
       const mealKcal = Math.round(targetCal * (MEAL_RATIO_MAP[mt] || 0.30));
 
-      // ── 규칙 4: 일반식 슬롯 처리 ────────────────────────────────
+      // ── 규칙 4: 일반식 슬롯 처리 ──────────────────────────────────
       if (mt === '점심' && needsLunchSlot && di % 2 === 0) {
-        // 격일로 일반식 슬롯 배치 (주 3~4회 외식 빈도에 맞게)
         dayMeals[mt] = makeGeneralMealSlot(mt, mealKcal, macroRatio);
         continue;
       }
@@ -982,15 +979,17 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
         continue;
       }
 
-      // ── 일반 슬롯 조립 ──────────────────────────────────────────
-      // ⚠️ push 순서 = MEAL_STRUCTURE 순서와 반드시 일치
-      //   [0] 단백질  [1] 탄수화물  [2] 야채
-      // openSwap(roleIdx) 이 MEAL_STRUCTURE[mealType][roleIdx].cats 로
-      // 교체 카테고리를 찾으므로, 순서 틀리면 버튼이 잘못 동작함
+      // ── 끼니별 슬롯 ratio 참조 (MEAL_STRUCTURE 기준) ──────────────
+      // ✅ Fix: macroRatio(하루 전체 비율) 대신 MEAL_STRUCTURE의 끼니별 ratio 사용
+      const structure       = MEAL_STRUCTURE[mt] || MEAL_STRUCTURE['점심'];
+      const proteinSlotRatio = structure[0]?.ratio ?? 0.40;
+      const carbSlotRatio    = structure[1]?.ratio ?? 0.35;
+      // 야채 슬롯은 남은 칼로리로 계산하므로 ratio 직접 사용 안 함
+
       const portions = [];
 
-      // ── [0] 단백질 슬롯 ─────────────────────────────────────────
-      const proteinKcal = Math.round(mealKcal * macroRatio.protein);
+      // ── [0] 단백질 슬롯 ───────────────────────────────────────────
+      const proteinKcal = Math.round(mealKcal * proteinSlotRatio);
       const proteinFood = (typeof FOODS_DB !== 'undefined')
         ? pickProteinFood(FOODS_DB, mt, badWords, usedNames, seafoodCountRef)
         : null;
@@ -1020,8 +1019,9 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
         });
       }
 
-      // ── [1] 탄수화물 슬롯 ───────────────────────────────────────
-      const carbKcal = Math.round(mealKcal * macroRatio.carb);
+      // ── [1] 탄수화물 슬롯 ─────────────────────────────────────────
+      // ✅ Fix: carbSlotRatio(끼니별 비율) 사용 → 저녁 0.30 / 아침·점심 0.40 반영
+      const carbKcal = Math.round(mealKcal * carbSlotRatio);
       const carbName = pickCarbFromPool(mt, usedCarbsByMeal);
       const carbFood = (typeof FOODS_DB !== 'undefined')
         ? FOODS_DB.find(f => f.name?.includes(carbName) && f.meals?.includes(mt))
@@ -1048,14 +1048,15 @@ function makeGeneralMealSlot(mealType, targetKcal, macroRatio) {
         });
       }
 
-      // ── [2] 야채 슬롯 (2~3종 조합, 규칙 3) ─────────────────────
+      // ── [2] 야채 슬롯 ─────────────────────────────────────────────
       const veggieKcal  = mealKcal - portions.reduce((s, p) => s + p.kcal, 0);
       const veggieCombo = pickVeggieCombo(badWords, usedCombos);
       const veggieLabel = veggieCombo.names.join(' + ');
       const veggieG     = Math.min(Math.max(Math.round(veggieKcal / veggieCombo.kcalPer100 * 100), 100), 250);
       const vScale      = veggieG / 100;
       portions.push({
-        food: { name: veggieLabel, category: '야채' },
+        // ✅ Fix: unit: 'g' 추가 → "250undefined" 방지
+        food: { name: veggieLabel, category: '야채', unit: 'g' },
         grams:   veggieG,
         role:    '야채',
         kcal:    Math.round(veggieCombo.kcalPer100 * vScale),
