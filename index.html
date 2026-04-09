@@ -506,12 +506,17 @@ function generateWeekMeal(calc,memberData){
       else{portions.push({food:{name:carbName},grams:130,role:'탄수화물',kcal:carbKcal,protein:Math.round(carbKcal*0.07/4),carb:Math.round(carbKcal*0.85/4),fat:Math.round(carbKcal*0.01/9)});}
       const veggieSlots=structure.slice(2);
       const usedVeggiesDay=new Set();
-      veggieSlots.forEach(slot=>{
-        if(slot.optional&&Math.random()<0.35){portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});return;}
-        const slotKcal=Math.round(mealKcal*slot.ratio);
-        const vFood=pickSingleVeggie(mt,badWords,usedVeggiesDay);
-        if(vFood){const r=slotKcal/vFood.kcal;const g=Math.min(Math.max(Math.round(r*vFood.amount/10)*10,50),200);const sc=g/vFood.amount;portions.push({food:vFood,grams:g,role:slot.role,kcal:Math.round(vFood.kcal*sc),protein:Math.round(vFood.protein*sc*10)/10,carb:Math.round(vFood.carb*sc*10)/10,fat:Math.round(vFood.fat*sc*10)/10});}
-        else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}
+      veggieSlots.forEach((slot,si)=>{
+        if(si===0){
+          // 채소1: 자동 1개 처방
+          const slotKcal=Math.round(mealKcal*slot.ratio);
+          const vFood=pickSingleVeggie(mt,badWords,usedVeggiesDay);
+          if(vFood){const r=slotKcal/vFood.kcal;const g=Math.min(Math.max(Math.round(r*vFood.amount/10)*10,50),200);const sc=g/vFood.amount;portions.push({food:vFood,grams:g,role:slot.role,kcal:Math.round(vFood.kcal*sc),protein:Math.round(vFood.protein*sc*10)/10,carb:Math.round(vFood.carb*sc*10)/10,fat:Math.round(vFood.fat*sc*10)/10});}
+          else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}
+        } else {
+          // 채소2, 채소3: 항상 빈 슬롯 (코치가 직접 선택)
+          portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});
+        }
       });
       dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0)};
     }
@@ -549,15 +554,14 @@ function renderMissions(missions) {
     const info = DOMAIN_INFO[dk];
     const score = missions.domainScores[dk];
     const pct = Math.min(score / 6 * 100, 100);
-    return `<div style="margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
-        <span style="color:${info.color}">${info.emoji} ${info.label}</span>
-        <span style="color:var(--text3);font-size:11px;">위험도 ${score}/6</span>
-      </div>
-      <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
-        <div style="background:${info.color.replace('var(--','').replace(')','')};background:${info.color};height:100%;width:${pct}%;border-radius:4px;transition:width 0.4s;"></div>
-      </div>
-    </div>`;
+    return '<div style="margin-bottom:8px;">'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">'
+      + '<span style="color:' + info.color + '">' + info.emoji + ' ' + info.label + '</span>'
+      + '<span style="color:var(--text3);font-size:11px;">위험도 ' + score + '/6</span>'
+      + '</div>'
+      + '<div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">'
+      + '<div style="background:' + info.color + ';height:100%;width:' + pct + '%;border-radius:4px;transition:width 0.4s;"></div>'
+      + '</div></div>';
   }).join('');
 
   const weekHtml = missions.weeks.map(w => {
@@ -592,13 +596,13 @@ function renderMissions(missions) {
     </div>`;
   }).join('');
 
-  document.getElementById('mission-section').innerHTML = `
-    <div class="card" style="margin-bottom:20px;">
-      <div class="card-title">설문 기반 위험 도메인 순위</div>
-      ${scoreBar}
-      <div style="font-size:11px;color:var(--text3);margin-top:8px;">위험도 높은 순으로 주차별 미션이 처방됩니다.</div>
-    </div>
-    ${weekHtml}`;
+  document.getElementById('mission-section').innerHTML =
+    '<div class="card" style="margin-bottom:20px;">'
+    + '<div class="card-title">설문 기반 위험 도메인 순위</div>'
+    + scoreBar
+    + '<div style="font-size:11px;color:var(--text3);margin-top:8px;">위험도 높은 순으로 주차별 미션이 처방됩니다.</div>'
+    + '</div>'
+    + weekHtml;
 }
 
 // ── 식재료 교체 모달 ──
@@ -699,142 +703,6 @@ async function saveToNotion(){
     if(success){msg.textContent='✅ 노션에 저장 완료!';btn.textContent='저장 완료';const lk=document.createElement('a');lk.href=`https://rara-coach.vercel.app/member.html?memberId=${savedMemberId}`;lk.target='_blank';lk.textContent='📋 회원용 링크 열기';lk.style.cssText='display:block;margin-top:10px;color:#e75480;font-weight:bold;text-decoration:underline;';msg.after(lk);}
   }catch(e){msg.textContent='❌ 저장 실패: '+e.message;btn.disabled=false;btn.textContent='노션에 저장하기';}
 }
-loadMembers();
-loadFoodsDB();
-</script>
-</body>
-</html>
-  const likes = d?.좋아하는음식 || '', dislikes = d?.싫어하는음식 || '';
-  let html = '';
-  if (likes || dislikes) html += `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;padding:8px 12px;background:var(--cream);border-radius:8px;">좋아하는 음식: <b>${likes || '-'}</b> &nbsp;·&nbsp; 못 먹는 음식: <b>${dislikes || '-'}</b></div>`;
-  html += `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">목표 ${mealPlan.targetCal}kcal · 식재료 또는 일반식을 클릭하면 수정할 수 있어요.</div>`;
-
-  const catColor = { '단백질':'#FFF0F5','육류':'#FCE4EC','해산물':'#E0F7FA','탄수화물':'#FFF8E1','곡류':'#FFFDE7','채소':'#F1F8E9','과일':'#F9FBE7','유제품':'#E3F2FD','지방':'#FFF3E0','야채':'#F1F8E9' };
-
-  mealPlan.weekPlan.forEach((day, di) => {
-    const totalKcal = Object.values(day.meals).reduce((s, m) => s + m.totalKcal, 0);
-    html += `<div class="day-block"><div class="day-header"><span class="day-title">Day ${day.dayIndex} (${day.day})</span><span class="day-kcal">${totalKcal}kcal</span></div>`;
-
-    day.mealTypes.forEach(mt => {
-      const meal = day.meals[mt];
-      const mealKcal = Math.round(mealPlan.targetCal * (MEAL_RATIO_MAP[mt] || 0.30));
-      html += `<div style="padding:10px 16px;border-top:1px solid #f0e8e0;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="font-size:12px;font-weight:500;color:var(--text3);">${mt}</span>
-          <span style="font-size:11px;color:var(--pink);">${meal.totalKcal}kcal</span>
-        </div>`;
-
-      if (meal.isGeneralMeal) {
-        // ✅ 일반식 슬롯 — 클릭하면 GM 모달 열림
-        const p = meal.portions[0];
-        html += `<div onclick="openGM(${di},'${mt}',${mealKcal})"
-          style="background:#FFF8E6;border:1.5px dashed #F4A93C;border-radius:8px;padding:8px 12px;cursor:pointer;"
-          onmouseenter="this.style.opacity='0.8'" onmouseleave="this.style.opacity='1'">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:13px;font-weight:500;color:#C47A15;">${p.food.name}</span>
-            <span style="font-size:11px;color:#F4A93C;">✏️ 수정</span>
-          </div>
-          <div style="font-size:11px;color:#A07020;margin-top:4px;display:flex;gap:10px;">
-            <span>탄수 ${p.carb}g</span><span>단백 ${p.protein}g</span><span>지방 ${p.fat}g</span>
-          </div>
-        </div>`;
-      } else {
-        html += `<div style="display:flex;flex-wrap:wrap;gap:6px;">`;
-        meal.portions.forEach((p, pi) => {
-          if (p.isEmpty) {
-            html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:#F8F8F8;padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px dashed #D0C8C0;color:#B0A090;">+ 채소 추가</div>`;
-            return;
-          }
-          const bg = catColor[p.food?.category] || '#F5F5F5';
-          html += `<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:${bg};padding:5px 10px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);">
-            <span style="font-weight:500;color:var(--text);">${p.food.name}</span>
-            <span style="color:var(--text3);margin-left:4px;">${p.grams}${p.food.unit || 'g'}</span>
-            <span style="color:var(--pink);margin-left:4px;">${p.kcal}kcal</span>
-          </div>`;
-        });
-        html += `</div>`;
-      }
-      html += `</div>`;
-    });
-    html += `</div>`;
-  });
-
-  html += `<div class="free-box"><div class="free-title">자유식 가이드 (주 1회, 1끼)</div><div class="free-list">1. 단백질 메뉴 먼저 — 고기, 생선, 두부 중 하나 반드시 포함<br>2. 음료는 물 또는 제로음료로<br>3. 탄수화물 + 지방 과다 조합 피하기<br>4. 다음 끼니 굶지 않기 — 정상식 복귀<br>5. 추천: 샤브샤브, 초밥, 삼겹살+밥 반공기, 파스타(단백질 추가)</div></div>`;
-  document.getElementById('meal-section').innerHTML = html;
-}
-
-function renderWorkout(workoutLevel) {
-  const plan = WORKOUT_PLANS[workoutLevel];
-  document.getElementById('workout-level-label').textContent = `${plan.level} 기준 · 주 5회 운동 + 2회 스트레칭/휴식`;
-  const days = ['월','화','수','목','금','토','일'];
-  const dayKeys = ['mon','tue','wed','thu','fri','sat','sun'];
-  const rows = plan.weeks.map((w, wi) => `
-    <tr><td class="wk-label">${wi+1}주</td>
-    ${dayKeys.map(dk => {
-      const vid = VIDEOS[w[dk]];
-      if (!vid) return '<td><span class="wt-rest">휴식</span></td>';
-      const typeLabel = { tabata:'타바타', lower:'하체', upper:'상체', core:'코어', strength:'전신근력', stretch:'스트레칭' }[vid.type];
-      return `<td><a href="${vid.url}" target="_blank" style="text-decoration:none;"><span class="wt wt-${vid.type}">${typeLabel}</span><span class="day-sub">${vid.label}</span></a></td>`;
-    }).join('')}</tr>`).join('');
-  document.getElementById('workout-section').innerHTML = `<table class="workout-table"><tr><th style="width:44px;">주차</th>${days.map(d => `<th>${d}</th>`).join('')}</tr>${rows}</table>`;
-  currentWorkout = { level: plan.level, week1: plan.weeks[0], week2: plan.weeks[1], week3: plan.weeks[2], week4: plan.weeks[3] };
-  ['week1','week2','week3','week4'].forEach((wk, wi) => { dayKeys.forEach(dk => { const vid = VIDEOS[plan.weeks[wi][dk]]; currentWorkout[wk][dk] = vid ? `${vid.label} (${plan.weeks[wi][dk]})` : '휴식'; }); });
-}
-
-// ── API 연동 ──
-async function loadMembers() {
-  try {
-    const res = await fetch('/api/members');
-    const { members } = await res.json();
-    const sel = document.getElementById('member-select');
-    members.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.name; sel.appendChild(opt); });
-  } catch (e) { console.error(e); }
-}
-
-async function loadMember() {
-  const sel = document.getElementById('member-select');
-  const memberId = sel.value;
-  if (!memberId) return alert('회원을 선택해주세요.');
-  currentMemberId = memberId;
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('result-area').style.display = 'none';
-  try {
-    const res = await fetch(`/api/member-data?memberId=${memberId}`);
-    const { data } = await res.json();
-    currentData = data;
-    currentCalc = calcAll(data);
-    currentMissions = generateMissions(data, currentCalc);
-    currentMealPlan = generateWeekMeal(currentCalc, data);
-    renderSummary(data, currentCalc);
-    renderMissions(currentMissions);
-    renderMeal(currentMealPlan);
-    renderWorkout(currentCalc.workoutLevel);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('result-area').style.display = 'block';
-  } catch (e) {
-    document.getElementById('loading').style.display = 'none';
-    alert('데이터 불러오기 실패: ' + e.message);
-  }
-}
-
-async function saveToNotion() {
-  const btn = document.querySelector('.btn-save');
-  const msg = document.getElementById('save-msg');
-  btn.disabled = true; btn.textContent = '저장 중...';
-  try {
-    const res = await fetch('/api/save-coaching', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memberId: currentMemberId, result: { memberInfo: currentData, calc: currentCalc, missions: currentMissions, mealPlan: currentMealPlan, workout: currentWorkout } }) });
-    const { success, pageId, memberId: savedMemberId } = await res.json();
-    if (success) {
-      msg.textContent = '✅ 노션에 저장 완료!'; btn.textContent = '저장 완료';
-      const memberUrl = `https://rara-coach.vercel.app/member.html?memberId=${savedMemberId}`;
-      const linkEl = document.createElement('a');
-      linkEl.href = memberUrl; linkEl.target = '_blank'; linkEl.textContent = '📋 회원용 링크 열기';
-      linkEl.style.cssText = 'display:block; margin-top:10px; color:#e75480; font-weight:bold; text-decoration:underline;';
-      msg.after(linkEl);
-    }
-  } catch (e) { msg.textContent = '❌ 저장 실패: ' + e.message; btn.disabled = false; btn.textContent = '노션에 저장하기'; }
-}
-
 loadMembers();
 loadFoodsDB();
 </script>
