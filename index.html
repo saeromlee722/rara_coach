@@ -107,12 +107,32 @@
   .member-sub{font-size:13px;color:var(--text3);}
   .tag{font-size:11px;padding:3px 10px;border-radius:10px;}
 
-  /* ── 식재료 교체 모달 ── */
+  /* ── 식재료 편집 모달 (그램조절 + 교체 통합) ── */
   .swap-modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
-  .swap-box{background:white;border-radius:16px;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;}
-  .swap-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .swap-box{background:white;border-radius:16px;width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
+  .swap-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
   .swap-header-title{font-size:15px;font-weight:500;}
   .swap-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0;line-height:1;}
+  .swap-tabs{display:flex;border-bottom:1px solid var(--border);}
+  .swap-tab{flex:1;padding:10px;text-align:center;font-size:13px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all 0.15s;}
+  .swap-tab.on{color:var(--pink);border-bottom-color:var(--pink);font-weight:500;}
+  /* 그램 조절 탭 */
+  .gram-body{padding:16px 20px;}
+  .gram-food-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px;padding:10px 14px;background:var(--cream);border-radius:8px;}
+  .gram-slider-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .gram-slider{flex:1;accent-color:var(--pink);cursor:pointer;}
+  .gram-input{width:72px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:500;text-align:center;outline:none;}
+  .gram-input:focus{border-color:var(--pink);}
+  .gram-unit{font-size:13px;color:var(--text3);}
+  .gram-macros{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0;}
+  .gram-macro-box{background:var(--cream);border-radius:8px;padding:10px 6px;text-align:center;}
+  .gram-macro-label{font-size:10px;color:var(--text3);margin-bottom:4px;}
+  .gram-macro-val{font-size:16px;font-weight:600;color:var(--text);}
+  .gram-macro-val.kcal{color:var(--pink);}
+  .gram-macro-unit{font-size:10px;color:var(--text3);}
+  .gram-apply-btn{width:100%;padding:12px;background:var(--pink);color:white;border:none;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background 0.2s;}
+  .gram-apply-btn:hover{background:var(--pink-dark);}
+  /* 교체 탭 */
   .swap-search-wrap{padding:12px 20px;border-bottom:1px solid var(--border);}
   .swap-search-input{width:100%;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;}
   .swap-search-input:focus{border-color:var(--pink);}
@@ -157,12 +177,41 @@
 </head>
 <body>
 
-<!-- 식재료 교체 모달 -->
+<!-- 식재료 편집 모달 (그램조절 + 교체) -->
 <div class="swap-modal" id="swap-modal" onclick="if(event.target===this)closeSwap()">
   <div class="swap-box">
-    <div class="swap-header"><span class="swap-header-title" id="swap-title">식재료 교체</span><button class="swap-close" onclick="closeSwap()">×</button></div>
-    <div class="swap-search-wrap"><input class="swap-search-input" id="swap-search" placeholder="식재료 검색..." oninput="onSwapSearch(this.value)"/></div>
-    <div class="swap-list" id="swap-list"></div>
+    <div class="swap-header">
+      <span class="swap-header-title" id="swap-title">식재료 편집</span>
+      <button class="swap-close" onclick="closeSwap()">×</button>
+    </div>
+    <div class="swap-tabs">
+      <div class="swap-tab on" id="stab-gram" onclick="switchSwapTab('gram')">⚖️ 그램 조절</div>
+      <div class="swap-tab" id="stab-swap" onclick="switchSwapTab('swap')">🔄 식재료 교체</div>
+    </div>
+    <!-- 그램 조절 탭 -->
+    <div id="swap-gram-tab">
+      <div class="gram-body">
+        <div class="gram-food-name" id="gram-food-name">-</div>
+        <div class="gram-slider-row">
+          <span style="font-size:12px;color:var(--text3);">그램수</span>
+          <input class="gram-slider" type="range" id="gram-slider" min="10" max="400" step="5" value="100" oninput="onGramSlider(this.value)">
+          <input class="gram-input" type="number" id="gram-input" min="10" max="400" step="5" value="100" oninput="onGramInput(this.value)">
+          <span class="gram-unit">g</span>
+        </div>
+        <div class="gram-macros">
+          <div class="gram-macro-box"><div class="gram-macro-label">칼로리</div><div class="gram-macro-val kcal" id="gv-kcal">-</div><div class="gram-macro-unit">kcal</div></div>
+          <div class="gram-macro-box"><div class="gram-macro-label">탄수화물</div><div class="gram-macro-val" id="gv-carb">-</div><div class="gram-macro-unit">g</div></div>
+          <div class="gram-macro-box"><div class="gram-macro-label">단백질</div><div class="gram-macro-val" id="gv-protein">-</div><div class="gram-macro-unit">g</div></div>
+          <div class="gram-macro-box"><div class="gram-macro-label">지방</div><div class="gram-macro-val" id="gv-fat">-</div><div class="gram-macro-unit">g</div></div>
+        </div>
+        <button class="gram-apply-btn" onclick="applyGram()">이 그램수로 적용</button>
+      </div>
+    </div>
+    <!-- 교체 탭 -->
+    <div id="swap-swap-tab" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+      <div class="swap-search-wrap"><input class="swap-search-input" id="swap-search" placeholder="식재료 검색..." oninput="onSwapSearch(this.value)"/></div>
+      <div class="swap-list" id="swap-list"></div>
+    </div>
   </div>
 </div>
 
@@ -605,13 +654,118 @@ function renderMissions(missions) {
     + weekHtml;
 }
 
-// ── 식재료 교체 모달 ──
+// ── 식재료 편집 모달 (그램조절 + 교체 통합) ──
 let swapTarget=null;
-function openSwap(dayIdx,mealType,roleIdx){swapTarget={dayIdx,mealType,roleIdx};const slot=MEAL_STRUCTURE[mealType][roleIdx];document.getElementById('swap-title').textContent=`${mealType} · ${slot.role} 교체`;document.getElementById('swap-search').value='';renderSwapList(slot.cats,mealType,'');document.getElementById('swap-modal').style.display='flex';}
+
+function openSwap(dayIdx,mealType,roleIdx){
+  swapTarget={dayIdx,mealType,roleIdx};
+  const day=currentMealPlan.weekPlan[dayIdx];
+  const portion=day.meals[mealType].portions[roleIdx];
+  const slot=MEAL_STRUCTURE[mealType][roleIdx];
+  document.getElementById('swap-title').textContent=mealType+' · '+slot.role+' 편집';
+  // 기본 탭: 그램 조절
+  switchSwapTab('gram');
+  // 그램 조절 탭 초기화
+  if(portion && !portion.isEmpty && portion.food){
+    const food=portion.food;
+    document.getElementById('gram-food-name').textContent=food.name+' (기준 '+food.amount+(food.unit||'g')+' / '+food.kcal+'kcal)';
+    const curG=portion.grams||food.amount||100;
+    document.getElementById('gram-slider').value=curG;
+    document.getElementById('gram-input').value=curG;
+    updateGramPreview(curG);
+  }
+  // 교체 탭 초기화
+  document.getElementById('swap-search').value='';
+  renderSwapList(slot.cats,mealType,'');
+  document.getElementById('swap-modal').style.display='flex';
+}
+
+function switchSwapTab(tab){
+  document.getElementById('stab-gram').classList.toggle('on',tab==='gram');
+  document.getElementById('stab-swap').classList.toggle('on',tab==='swap');
+  document.getElementById('swap-gram-tab').style.display=tab==='gram'?'block':'none';
+  const swapEl=document.getElementById('swap-swap-tab');
+  swapEl.style.display=tab==='swap'?'flex':'none';
+}
+
+function updateGramPreview(g){
+  if(!swapTarget)return;
+  const {dayIdx,mealType,roleIdx}=swapTarget;
+  const portion=currentMealPlan.weekPlan[dayIdx].meals[mealType].portions[roleIdx];
+  if(!portion||!portion.food||portion.isEmpty)return;
+  const food=portion.food;
+  const base=food.amount||100;
+  const r=g/base;
+  document.getElementById('gv-kcal').textContent=Math.round(food.kcal*r);
+  document.getElementById('gv-carb').textContent=Math.round(food.carb*r*10)/10;
+  document.getElementById('gv-protein').textContent=Math.round(food.protein*r*10)/10;
+  document.getElementById('gv-fat').textContent=Math.round(food.fat*r*10)/10;
+}
+
+function onGramSlider(v){
+  document.getElementById('gram-input').value=v;
+  updateGramPreview(parseFloat(v));
+}
+
+function onGramInput(v){
+  const val=Math.min(Math.max(parseInt(v)||10,10),400);
+  document.getElementById('gram-slider').value=val;
+  updateGramPreview(val);
+}
+
+function applyGram(){
+  if(!swapTarget)return;
+  const {dayIdx,mealType,roleIdx}=swapTarget;
+  const g=parseFloat(document.getElementById('gram-input').value)||100;
+  const day=currentMealPlan.weekPlan[dayIdx];
+  const portions=day.meals[mealType].portions;
+  const p=portions[roleIdx];
+  if(!p||!p.food)return;
+  const food=p.food;
+  const r=g/(food.amount||100);
+  portions[roleIdx]={...p,grams:g,kcal:Math.round(food.kcal*r),protein:Math.round(food.protein*r*10)/10,carb:Math.round(food.carb*r*10)/10,fat:Math.round(food.fat*r*10)/10};
+  day.meals[mealType].totalKcal=portions.reduce((s,pp)=>s+pp.kcal,0);
+  closeSwap();
+  renderMeal(currentMealPlan);
+}
+
 function closeSwap(){document.getElementById('swap-modal').style.display='none';swapTarget=null;}
-function renderSwapList(cats,mealType,q){const list=FOODS_DB.filter(f=>{if(!cats.includes(f.category))return false;if(!f.meals.includes(mealType))return false;if(q&&!f.name.includes(q))return false;return true;}).slice(0,30);document.getElementById('swap-list').innerHTML=list.map(f=>`<div class="swap-item" onclick="applySwap('${f.name}')"><div style="font-size:13px;font-weight:500;color:var(--text);">${f.name}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${f.kcal}kcal · 단백질 ${f.protein}g · 탄수 ${f.carb}g · 지방 ${f.fat}g <span style="color:var(--pink);margin-left:6px;">${f.category}</span></div></div>`).join('')||'<div style="padding:16px;font-size:13px;color:var(--text3);">검색 결과 없음</div>';}
-function applySwap(foodName){if(!swapTarget)return;const{dayIdx,mealType,roleIdx}=swapTarget;const food=FOODS_DB.find(f=>f.name===foodName);if(!food)return;const slot=MEAL_STRUCTURE[mealType][roleIdx];const mealKcal=Math.round(currentMealPlan.targetCal*MEAL_RATIO[mealType]);const slotKcal=Math.round(mealKcal*slot.ratio);const portion=calcPortion(food,slotKcal);if(!portion)return;const day=currentMealPlan.weekPlan[dayIdx];const ops=day.meals[mealType].portions;ops[roleIdx]={...portion,role:slot.role};day.meals[mealType].totalKcal=ops.reduce((s,p)=>s+p.kcal,0);closeSwap();renderMeal(currentMealPlan);}
-function onSwapSearch(q){if(!swapTarget)return;const{mealType,roleIdx}=swapTarget;const slot=MEAL_STRUCTURE[mealType][roleIdx];renderSwapList(slot.cats,mealType,q);}
+
+function renderSwapList(cats,mealType,q){
+  const list=FOODS_DB.filter(f=>{
+    if(!cats.includes(f.category))return false;
+    if(!f.meals.includes(mealType))return false;
+    if(q&&!f.name.includes(q))return false;
+    return true;
+  }).slice(0,30);
+  document.getElementById('swap-list').innerHTML=list.map(f=>`<div class="swap-item" onclick="applySwap('${f.name}')"><div style="font-size:13px;font-weight:500;color:var(--text);">${f.name}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${f.kcal}kcal · 단백질 ${f.protein}g · 탄수 ${f.carb}g · 지방 ${f.fat}g <span style="color:var(--pink);margin-left:6px;">${f.category}</span></div></div>`).join('')||'<div style="padding:16px;font-size:13px;color:var(--text3);">검색 결과 없음</div>';
+}
+
+function applySwap(foodName){
+  if(!swapTarget)return;
+  const{dayIdx,mealType,roleIdx}=swapTarget;
+  const food=FOODS_DB.find(f=>f.name===foodName);
+  if(!food)return;
+  const slot=MEAL_STRUCTURE[mealType][roleIdx];
+  const mealKcal=Math.round(currentMealPlan.targetCal*(MEAL_RATIO_MAP[mealType]||0.30));
+  const slotKcal=Math.round(mealKcal*slot.ratio);
+  const r=slotKcal/food.kcal;
+  const g=Math.min(Math.max(Math.round(r*food.amount/10)*10,20),300);
+  const sc=g/food.amount;
+  const day=currentMealPlan.weekPlan[dayIdx];
+  const portions=day.meals[mealType].portions;
+  portions[roleIdx]={food,grams:g,role:slot.role,kcal:Math.round(food.kcal*sc),protein:Math.round(food.protein*sc*10)/10,carb:Math.round(food.carb*sc*10)/10,fat:Math.round(food.fat*sc*10)/10};
+  day.meals[mealType].totalKcal=portions.reduce((s,p)=>s+p.kcal,0);
+  closeSwap();
+  renderMeal(currentMealPlan);
+}
+
+function onSwapSearch(q){
+  if(!swapTarget)return;
+  const{mealType,roleIdx}=swapTarget;
+  const slot=MEAL_STRUCTURE[mealType][roleIdx];
+  renderSwapList(slot.cats,mealType,q);
+}
 
 // ── 일반식 모달 ──
 const GENERAL_PRESETS={아침:[{name:'그릭요거트 + 과일 + 견과류',kcal:300,carb:28,protein:20,fat:10},{name:'달걀 스크램블 + 통밀토스트',kcal:350,carb:30,protein:22,fat:14},{name:'오트밀 + 단백질쉐이크',kcal:320,carb:40,protein:20,fat:8},{name:'에그토스트 + 샐러드',kcal:380,carb:32,protein:24,fat:14}],점심:[{name:'서브웨이 치킨 15cm',kcal:370,carb:42,protein:28,fat:8},{name:'포케볼 (연어/참치, 밥 반공기)',kcal:520,carb:55,protein:30,fat:14},{name:'한식 도시락 (닭가슴살+현미)',kcal:500,carb:50,protein:38,fat:10},{name:'비빔밥 (밥 반공기)',kcal:450,carb:68,protein:18,fat:10},{name:'설렁탕/곰탕 (밥 반공기)',kcal:420,carb:38,protein:28,fat:12},{name:'닭가슴살 샐러드',kcal:380,carb:22,protein:35,fat:14},{name:'된장찌개 정식 (밥 반공기)',kcal:430,carb:55,protein:20,fat:10},{name:'닭가슴살 도시락',kcal:420,carb:40,protein:42,fat:8},{name:'쌀국수 (소고기 추가)',kcal:480,carb:62,protein:28,fat:8},{name:'회덮밥 (밥 반공기)',kcal:460,carb:52,protein:28,fat:12}],저녁:[{name:'삼겹살 (2인분 반) + 쌈채소',kcal:480,carb:10,protein:25,fat:35},{name:'샤브샤브',kcal:420,carb:30,protein:35,fat:12},{name:'초밥 (8~10피스)',kcal:480,carb:60,protein:28,fat:8},{name:'파스타 (닭가슴살 추가)',kcal:520,carb:65,protein:30,fat:14},{name:'순두부찌개 정식 (밥 반공기)',kcal:400,carb:48,protein:22,fat:10},{name:'소고기 구이 + 쌈',kcal:500,carb:15,protein:38,fat:28},{name:'닭가슴살 정식',kcal:420,carb:38,protein:42,fat:8},{name:'연어 스테이크 + 채소',kcal:460,carb:18,protein:38,fat:22},{name:'두부 스테이크 + 현미밥',kcal:400,carb:42,protein:24,fat:12},{name:'닭갈비 (밥 반공기)',kcal:480,carb:48,protein:35,fat:14}],간식:[{name:'그릭요거트 + 베리류',kcal:180,carb:20,protein:14,fat:4},{name:'삶은 달걀 2개 + 오이',kcal:160,carb:4,protein:16,fat:10},{name:'단백질바',kcal:200,carb:22,protein:18,fat:6},{name:'아몬드 + 과일',kcal:220,carb:18,protein:6,fat:14}]};
