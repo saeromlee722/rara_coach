@@ -9,7 +9,7 @@ function heading3(text) {
   return { object:'block', type:'heading_3', heading_3:{ rich_text:[{ type:'text', text:{ content: text } }] } };
 }
 function bullet(text) {
-  return { object:'block', type:'bulleted_list_item', bulleted_list_item:{ rich_text:[{ type:'text', text:{ content: text } }] } };
+  return { object:'block', type:'bulleted_list_item', bulleted_list_item:{ rich_text:[{ type:'text', text:{ content: String(text||'') } }] } };
 }
 function bulletLink(text, url) {
   return {
@@ -21,12 +21,12 @@ function bulletLink(text, url) {
   };
 }
 function paragraph(text) {
-  return { object:'block', type:'paragraph', paragraph:{ rich_text:[{ type:'text', text:{ content: text } }] } };
+  return { object:'block', type:'paragraph', paragraph:{ rich_text:[{ type:'text', text:{ content: String(text||'') } }] } };
 }
 function callout(text, emoji) {
   return {
     object:'block', type:'callout',
-    callout:{ rich_text:[{ type:'text', text:{ content: text } }], icon:{ type:'emoji', emoji: emoji||'📌' } }
+    callout:{ rich_text:[{ type:'text', text:{ content: String(text||'') } }], icon:{ type:'emoji', emoji: emoji||'📌' } }
   };
 }
 function divider() {
@@ -35,34 +35,13 @@ function divider() {
 function toggle(title, children) {
   return {
     object:'block', type:'toggle',
-    toggle:{ rich_text:[{ type:'text', text:{ content: title } }], children }
+    toggle:{ rich_text:[{ type:'text', text:{ content: String(title||'') } }], children }
   };
 }
 
 // ── HTML 태그 제거 ──────────────────────────
 function stripHtml(text) {
   return (text || '').replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-// ── 미션 텍스트 → Notion 블록 (링크 포함) ──
-function missionBullet(prefix, text) {
-  const urlMatch = (text || '').match(/href="([^"]+)"/);
-  const clean = stripHtml(text || '');
-
-  if (urlMatch) {
-    const url = urlMatch[1];
-    const parts = clean.split('👉');
-    const before = (parts[0] || clean).trim();
-    const linkLabel = parts[1] ? ('👉' + parts[1]).trim() : '▶ 영상 보기';
-    return {
-      object:'block', type:'bulleted_list_item',
-      bulleted_list_item:{ rich_text:[
-        { type:'text', text:{ content: prefix + before + '  ' } },
-        { type:'text', text:{ content: linkLabel, link:{ url } }, annotations:{ color:'pink', bold:true } }
-      ]}
-    };
-  }
-  return bullet(prefix + clean);
 }
 
 // ── 청크 분할 (Notion API 100개 제한) ───────
@@ -80,20 +59,28 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   try {
-    const { memberId, result } = req.body;
+    // body 파싱 안전 처리
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch(e) { return res.status(400).json({ error: 'Invalid JSON body' }); }
+    }
+
+    const { memberId, result } = body;
+    if (!memberId || !result) return res.status(400).json({ error: 'memberId와 result가 필요합니다' });
+
     const today = new Date();
     const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
     const pageTitle = `${dateStr} 코칭 플랜`;
 
     const { calc, missions, workout, mealPlan, memberInfo } = result;
-    const allDaily = missions._allDaily || [];
     const dayLabels = ['월','화','수','목','금','토','일'];
     const dayKeys   = ['mon','tue','wed','thu','fri','sat','sun'];
+    const weekLabels = ['1주차','2주차','3주차','4주차'];
 
     // ── 1. 칼로리 & 탄단지 ──────────────────
     const calcBlocks = [
       callout(
-        ``🎯 목표 칼로리: ${calc.targetCal} kcal  |  목표유형: ${calc.goalType}  |  탄단지: ${calc.macroLabel}  |  회원 유형: ${calc.userType}  |  Safety Flag: ${calc.safetyFlag ? 'ON ⚠️' : 'OFF ✅'}`,
+        `🎯 목표 칼로리: ${calc.targetCal} kcal  |  목표유형: ${calc.goalType}  |  탄단지: ${calc.macroLabel}  |  회원 유형: ${calc.userType}  |  Safety Flag: ${calc.safetyFlag ? 'ON ⚠️' : 'OFF ✅'}`,
         '📊'
       ),
       heading2('📊 칼로리 & 탄단지'),
@@ -101,34 +88,40 @@ module.exports = async function handler(req, res) {
       bullet(`활동대사량 (TDEE): ${calc.tdee} kcal`),
       bullet(`목표 섭취 칼로리: ${calc.targetCal} kcal`),
       bullet(`단백질: ${calc.protein}g  |  탄수화물: ${calc.carb}g  |  지방: ${calc.fat}g`),
-      bullet(`활동계수: ${calc.totalFactor}  |  식습관 위험: ${calc.dietRisk}/2  |  회복 위험: ${calc.recoveryRisk}/2  |  호르몬 위험: ${calc.hormoneRisk}/2  |  위험합계: ${calc.riskSum}/6  |  위험도 보정: +${calc.riskAdjust}kcal`),
+      bullet(`활동계수: ${calc.totalFactor}  |  식습관 위험: ${calc.dietRisk}  |  회복 위험: ${calc.recoveryRisk}  |  호르몬 위험: ${calc.hormoneRisk}  |  위험합계: ${calc.riskSum}  |  위험도 보정: +${calc.riskAdjust}kcal`),
       divider(),
     ];
 
-    // ── 2. 4주 미션표 ────────────────────────
-    const weekKeys   = ['week1','week2','week3','week4'];
-    const weekLabels = ['1주차','2주차','3주차','4주차'];
-
+    // ── 2. 4주 미션표 (v2 구조) ──────────────
+    // missions.weeks[] 배열 구조
+    // 각 week: { weekNum, theme, mission1:{emoji,label,text}, mission2:{...}, dailyMissions:[{dayNum,dayLabel,theme,isBodyCheck,text}] }
     const missionBlocks = [heading2('📋 4주 미션표')];
 
-    weekKeys.forEach((wk, wi) => {
-      const m = missions[wk];
-      const weekDailyStart = wi * 7;
-      const weekDays = allDaily.slice(weekDailyStart, weekDailyStart + 7);
+    // 도메인 위험도 순위 추가
+    if (missions.rankedDomains && missions.domainScores) {
+      const rankText = missions.rankedDomains.slice(0,4).map((dk, i) => `${i+1}위: ${dk}(${missions.domainScores[dk]}점)`).join('  |  ');
+      missionBlocks.push(callout(`위험 도메인 순위: ${rankText}`, '⚠️'));
+    }
+
+    const weeks = missions.weeks || [];
+    weeks.forEach((w) => {
+      const m1 = w.mission1 || {};
+      const m2 = w.mission2 || {};
+      const dailies = w.dailyMissions || [];
 
       const weekChildren = [
-        missionBullet('🏆 주간미션 1: ', m.weekly1 || ''),
-        missionBullet('🏆 주간미션 2: ', m.weekly2 || ''),
-        bullet(`✅ 데일리 고정: ${stripHtml(m.dailyFixed || '')}`),
+        bullet(`🏆 주간미션 1 [${m1.emoji||''} ${m1.label||''}]: ${m1.text||''}`),
+        bullet(`🏆 주간미션 2 [${m2.emoji||''} ${m2.label||''}]: ${m2.text||''}`),
         paragraph(''),
-        paragraph('📅 데일리 미션 (날마다 다름):'),
+        paragraph('📅 데일리 미션:'),
       ];
 
-      weekDays.forEach((dm, di) => {
-        weekChildren.push(bullet(`${dayLabels[di]} · Day${weekDailyStart + di + 1}: ${dm}`));
+      dailies.forEach((dm) => {
+        const prefix = dm.isBodyCheck ? '⭐ ' : '';
+        weekChildren.push(bullet(`${dm.dayLabel} · Day${dm.dayNum}: ${prefix}${dm.text||''}`));
       });
 
-      missionBlocks.push(toggle(`${weekLabels[wi]} — ${m.theme || ''}`, weekChildren));
+      missionBlocks.push(toggle(`${w.weekNum}주차 — ${w.theme||''}`, weekChildren));
     });
     missionBlocks.push(divider());
 
@@ -138,17 +131,50 @@ module.exports = async function handler(req, res) {
       callout(`목표 칼로리 ${calc.targetCal}kcal 기준 · 1-2주차, 3-4주차 반복`, '🍽'),
     ];
 
-    // ✅ 수정: mealPlan이 배열이든 객체든 배열로 변환
-    const mealPlanArray = Array.isArray(mealPlan)
-      ? mealPlan
-      : Object.values(mealPlan || {});
+    // mealPlan 구조: { weekPlan:[], targetCal, mealTypes }
+    // 또는 구형: 배열 [{day, meals:[{type,foods,kcal}]}]
+    let weekPlanArray = [];
+    if (mealPlan && mealPlan.weekPlan) {
+      weekPlanArray = mealPlan.weekPlan;
+    } else if (Array.isArray(mealPlan)) {
+      weekPlanArray = mealPlan;
+    } else if (mealPlan && typeof mealPlan === 'object') {
+      weekPlanArray = Object.values(mealPlan);
+    }
 
-    mealPlanArray.forEach((day, i) => {
-      const dayTotal = day.total || (day.meals || []).reduce((s, m) => s + m.kcal, 0);
-      const mealChildren = (day.meals || []).map(m =>
-        bullet(`${m.type}: ${stripHtml(m.foods)}  (${m.kcal}kcal)`)
-      );
-      mealBlocks.push(toggle(`Day ${i+1} (${day.day}) — ${dayTotal}kcal`, mealChildren));
+    weekPlanArray.forEach((day, i) => {
+      const dayLabel = day.day || dayLabels[i] || `Day${i+1}`;
+      let mealChildren = [];
+      let dayTotal = 0;
+
+      if (day.meals && typeof day.meals === 'object' && !Array.isArray(day.meals)) {
+        // 신형: meals = { 아침:{portions,totalKcal}, 점심:{...}, ... }
+        const mealTypes = day.mealTypes || Object.keys(day.meals);
+        mealTypes.forEach(mt => {
+          const meal = day.meals[mt];
+          if (!meal) return;
+          dayTotal += meal.totalKcal || 0;
+
+          if (meal.isGeneralMeal) {
+            const p = (meal.portions || [])[0] || {};
+            mealChildren.push(bullet(`${mt}: 🍱 일반식  탄수 ${p.carb||0}g · 단백 ${p.protein||0}g · 지방 ${p.fat||0}g  (${meal.totalKcal||0}kcal)`));
+          } else {
+            const foods = (meal.portions || [])
+              .filter(p => !p.isEmpty && p.foodName)
+              .map(p => `${p.foodName} ${p.grams||0}g`)
+              .join(' + ');
+            mealChildren.push(bullet(`${mt}: ${foods || '-'}  (${meal.totalKcal||0}kcal)`));
+          }
+        });
+      } else if (Array.isArray(day.meals)) {
+        // 구형: meals = [{type, foods, kcal}]
+        day.meals.forEach(m => {
+          dayTotal += m.kcal || 0;
+          mealChildren.push(bullet(`${m.type}: ${stripHtml(m.foods)}  (${m.kcal}kcal)`));
+        });
+      }
+
+      mealBlocks.push(toggle(`Day ${day.dayIndex||i+1} (${dayLabel}) — ${dayTotal}kcal`, mealChildren));
     });
 
     mealBlocks.push(
@@ -166,6 +192,7 @@ module.exports = async function handler(req, res) {
       callout(`운동 레벨: ${workout.level}  |  주 5회 운동 + 2회 스트레칭/휴식`, '💪'),
     ];
 
+    const weekKeys = ['week1','week2','week3','week4'];
     weekKeys.forEach((wk, wi) => {
       const w = workout[wk];
       if (!w) return;
@@ -211,7 +238,7 @@ module.exports = async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error('save-coaching error:', err);
     return res.status(500).json({ error: err.message });
   }
 };
