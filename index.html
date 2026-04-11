@@ -848,14 +848,100 @@ async function loadMember(){
     document.getElementById('result-area').style.display='block';
   }catch(e){document.getElementById('loading').style.display='none';alert('데이터 불러오기 실패: '+e.message);}
 }
+function buildMissionsPayload(missions) {
+  // Notion 저장용 경량 미션 객체 — food 객체 중복 제거, domainScores 1회만 포함
+  return {
+    domainScores: missions.domainScores,
+    rankedDomains: missions.rankedDomains,
+    weeks: missions.weeks.map(w => ({
+      weekNum: w.weekNum,
+      theme: w.theme,
+      mission1: { domainKey: w.mission1.domainKey, label: w.mission1.label, emoji: w.mission1.emoji, text: w.mission1.text },
+      mission2: { domainKey: w.mission2.domainKey, label: w.mission2.label, emoji: w.mission2.emoji, text: w.mission2.text },
+      dailyMissions: w.dailyMissions.map(dm => ({
+        dayNum: dm.dayNum, dayLabel: dm.dayLabel, theme: dm.theme, isBodyCheck: dm.isBodyCheck, text: dm.text
+      }))
+    }))
+  };
+}
+
+function buildMealPayload(mealPlan) {
+  // food 객체에서 name만 남겨 경량화
+  return {
+    targetCal: mealPlan.targetCal,
+    mealTypes: mealPlan.mealTypes,
+    hasGeneralMealSlots: mealPlan.hasGeneralMealSlots,
+    weekPlan: mealPlan.weekPlan.map(day => ({
+      day: day.day,
+      dayIndex: day.dayIndex,
+      mealTypes: day.mealTypes,
+      meals: Object.fromEntries(
+        Object.entries(day.meals).map(([mt, meal]) => [mt, {
+          totalKcal: meal.totalKcal,
+          isGeneralMeal: meal.isGeneralMeal || false,
+          portions: meal.portions.map(p => ({
+            role: p.role,
+            grams: p.grams,
+            kcal: p.kcal,
+            protein: p.protein,
+            carb: p.carb,
+            fat: p.fat,
+            isEmpty: p.isEmpty || false,
+            foodName: p.food?.name || '',
+            isGeneralMeal: p.isGeneralMeal || false
+          }))
+        }])
+      )
+    }))
+  };
+}
+
 async function saveToNotion(){
   const btn=document.querySelector('.btn-save'),msg=document.getElementById('save-msg');
-  btn.disabled=true;btn.textContent='저장 중...';
+  btn.disabled=true;btn.textContent='저장 중...';msg.textContent='';
   try{
-    const res=await fetch('/api/save-coaching',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({memberId:currentMemberId,result:{memberInfo:currentData,calc:currentCalc,missions:currentMissions,mealPlan:currentMealPlan,workout:currentWorkout}})});
-    const{success,memberId:savedMemberId}=await res.json();
-    if(success){msg.textContent='✅ 노션에 저장 완료!';btn.textContent='저장 완료';const lk=document.createElement('a');lk.href=`https://rara-coach.vercel.app/member.html?memberId=${savedMemberId}`;lk.target='_blank';lk.textContent='📋 회원용 링크 열기';lk.style.cssText='display:block;margin-top:10px;color:#e75480;font-weight:bold;text-decoration:underline;';msg.after(lk);}
-  }catch(e){msg.textContent='❌ 저장 실패: '+e.message;btn.disabled=false;btn.textContent='노션에 저장하기';}
+    const payload = {
+      memberId: currentMemberId,
+      result: {
+        memberInfo: currentData,
+        calc: currentCalc,
+        missions: buildMissionsPayload(currentMissions),
+        mealPlan: buildMealPayload(currentMealPlan),
+        workout: currentWorkout
+      }
+    };
+    const res = await fetch('/api/save-coaching', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    // 서버 에러 시 텍스트로 읽어서 실제 에러 내용 표시
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); }
+    catch(e) {
+      msg.textContent = '❌ 서버 에러: ' + text.slice(0, 200);
+      btn.disabled=false; btn.textContent='노션에 저장하기';
+      return;
+    }
+    const {success, memberId: savedMemberId, error} = json;
+    if(success){
+      msg.textContent='✅ 노션에 저장 완료!';
+      btn.textContent='저장 완료';
+      const lk=document.createElement('a');
+      lk.href=`https://rara-coach.vercel.app/member.html?memberId=${savedMemberId}`;
+      lk.target='_blank';
+      lk.textContent='📋 회원용 링크 열기';
+      lk.style.cssText='display:block;margin-top:10px;color:#e75480;font-weight:bold;text-decoration:underline;';
+      msg.after(lk);
+    } else {
+      msg.textContent='❌ 저장 실패: '+(error||'알 수 없는 오류');
+      btn.disabled=false; btn.textContent='노션에 저장하기';
+    }
+  }catch(e){
+    msg.textContent='❌ 저장 실패: '+e.message;
+    btn.disabled=false;btn.textContent='노션에 저장하기';
+  }
 }
 loadMembers();
 loadFoodsDB();
