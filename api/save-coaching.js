@@ -214,12 +214,22 @@ module.exports = async function handler(req, res) {
       workoutBlocks.push(toggle(`${weekLabels[wi]}`, wChildren));
     });
 
+    // ── JSON 데이터 블록 (member.html 읽기용) ──
+    const planJsonStr = '__PLAN_DATA__' + JSON.stringify({ calc, missions, mealPlan, workout });
+    const jsonDataBlock = [{
+      object: 'block', type: 'code',
+      code: { language: 'json', rich_text: [{ type: 'text', text: { content: planJsonStr } }] }
+    }];
+
     // ── 페이지 생성 ──────────────────────────
     const page = await notion.pages.create({
       parent: { page_id: memberId },
       properties: { title: { title: [{ type:'text', text:{ content: pageTitle } }] } },
       children: calcBlocks,
     });
+
+    // JSON 데이터 블록 저장 (get-plan.js가 읽을 수 있도록)
+    await notion.blocks.children.append({ block_id: page.id, children: jsonDataBlock });
 
     for (const chunk of chunkArray(missionBlocks, 40)) {
       await notion.blocks.children.append({ block_id: page.id, children: chunk });
