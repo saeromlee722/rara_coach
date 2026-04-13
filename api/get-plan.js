@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
     for (const block of blocks.results) {
       if (block.type === 'code') {
         const lang = block.code?.language || '';
-        const text = (block.code?.rich_text || []).map(t => t.plain_text).join('');
+        const text = (block.code?.rich_text || []).map(t => t.plain_text || t.text?.content || '').join('');
         if (lang === 'json' && text.startsWith('__PLAN_DATA__')) {
           try {
             const json = JSON.parse(text.replace('__PLAN_DATA__', '').trim());
