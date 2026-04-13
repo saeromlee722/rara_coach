@@ -223,12 +223,13 @@ const WORKOUT_PLANS={beginner:{level:'초보자',weeks:[{mon:'D3',tue:'D2',wed:'
 function showTab(id,el){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById('tab-'+id).classList.add('on');el.classList.add('on');}
 function toggleBlock(headEl){const body=headEl.nextElementSibling;const chevron=headEl.querySelector('.chevron');body.classList.toggle('open');if(chevron)chevron.classList.toggle('open');}
 
-function renderAll(d){
-  const calc=calcAll(d);
-  const missions=generateMissions(d,calc);
-  const mealPlan=generateWeekMeal(calc,d);
-  const plan=WORKOUT_PLANS[calc.workoutLevel];
-  const videoMap=buildVideoMap(d);
+// savedCalc, savedMissions, savedMealPlan, savedWorkout 가 있으면 그걸 사용 (코치 수정사항 반영)
+function renderAll(d, savedCalc, savedMissions, savedMealPlan, savedWorkout){
+  const calc = savedCalc || calcAll(d);
+  const missions = savedMissions || generateMissions(d,calc);
+  const mealPlan = savedMealPlan || generateWeekMeal(calc,d);
+  const plan = WORKOUT_PLANS[calc.workoutLevel];
+  const videoMap = buildVideoMap(d);
 
   document.getElementById('avatar').textContent=(d.이름||'??').slice(0,2);
   document.getElementById('hero-name').textContent=d.이름||'-';
@@ -248,12 +249,23 @@ function renderAll(d){
 
   // 식단 렌더링
   const catColor={'단백질':'#FFF0F5','육류':'#FCE4EC','해산물':'#E0F7FA','탄수화물':'#FFF8E1','곡류':'#FFFDE7','채소':'#F1F8E9','과일':'#F9FBE7','유제품':'#E3F2FD','지방':'#FFF3E0','야채':'#F1F8E9'};
+  // 저장된 플랜(foodName)과 실시간 생성(food.name) 모두 대응
+  function getFoodName(p){ return p.foodName || p.food?.name || ''; }
+  function getFoodCategory(p){ return p.food?.category || ''; }
+  function getFoodUnit(p){ return p.food?.unit || 'g'; }
   let mealHtml=mealPlan.weekPlan.map((day,di)=>{
     const totalKcal=Object.values(day.meals).reduce((s,m)=>s+m.totalKcal,0);
     const mealsHtml=day.mealTypes.map(mt=>{
       const meal=day.meals[mt];
       if(meal.isGeneralMeal){const p=meal.portions[0];return`<div class="meal-row"><span class="meal-type">${mt}</span><span><span style="background:#FFF8E6;border:1.5px dashed #F4A93C;border-radius:6px;padding:3px 8px;font-size:12px;">🍱 일반식 — ${p.carb}g·${p.protein}g·${p.fat}g</span></span><span class="meal-kcal">${p.kcal}kcal</span></div>`;}
-      const foodsStr=meal.portions.map(p=>{if(p.isEmpty)return'';const bg=catColor[p.food?.category]||'#F5F5F5';const g=p.grams?` ${p.grams}${p.food?.unit||'g'}`:'';return`<span style="background:${bg};padding:2px 7px;border-radius:10px;font-size:12px;margin-right:4px;display:inline-block;margin-bottom:3px;">${p.food.name}${g}</span>`;}).join('');
+      const foodsStr=meal.portions.map(p=>{
+        if(p.isEmpty)return'';
+        const name=getFoodName(p);
+        if(!name)return'';
+        const bg=catColor[getFoodCategory(p)]||'#F5F5F5';
+        const g=p.grams?` ${p.grams}${getFoodUnit(p)}`:'';
+        return`<span style="background:${bg};padding:2px 7px;border-radius:10px;font-size:12px;margin-right:4px;display:inline-block;margin-bottom:3px;">${name}${g}</span>`;
+      }).join('');
       return`<div class="meal-row"><span class="meal-type">${mt}</span><span>${foodsStr}</span><span class="meal-kcal">${meal.totalKcal}kcal</span></div>`;
     }).join('');
     return`<div class="day-block"><div class="day-head" onclick="toggleBlock(this)"><div class="day-head-left">Day ${day.dayIndex} (${day.day})</div><div style="display:flex;align-items:center;gap:10px;"><span class="day-kcal">${totalKcal}kcal</span><span style="font-size:12px;color:var(--text3);">▼</span></div></div><div class="day-meals ${di===0?'open':''}">${mealsHtml}</div></div>`;
@@ -279,12 +291,35 @@ async function init(){
   if(!memberId){document.getElementById('loading').innerHTML='<span style="font-size:32px">😅</span><br>잘못된 링크예요. 코치에게 문의해주세요.';return;}
   try{
     await loadFoodsDB();
+
+    // 1. 저장된 코칭 플랜 우선 시도
+    const planRes=await fetch(`/api/get-plan?memberId=${memberId}`);
+    if(planRes.ok){
+      const{success,plan}=await planRes.json();
+      if(success&&plan){
+        // 저장된 플랜 사용 (코치가 수정한 값 그대로)
+        const surveyRes=await fetch(`/api/member-data?memberId=${memberId}`);
+        const{data}=await surveyRes.json();
+        renderFromSavedPlan(data, plan);
+        return;
+      }
+    }
+
+    // 2. 저장된 플랜 없으면 설문 데이터로 재생성
     const res=await fetch(`/api/member-data?memberId=${memberId}`);
     if(!res.ok)throw new Error('데이터 없음');
     const{data}=await res.json();
     if(!data||!data.이름)throw new Error('설문 데이터가 없습니다');
     renderAll(data);
   }catch(e){document.getElementById('loading').innerHTML=`<span style="font-size:32px">😅</span><br>데이터를 불러올 수 없어요.<br><span style="font-size:12px;color:var(--text3);">${e.message}</span>`;}
+}
+
+// 저장된 플랜 데이터로 렌더링 (코치 수정사항 반영)
+function renderFromSavedPlan(d, plan){
+  const {calc, missions, mealPlan, workout} = plan;
+  const workoutPlan = WORKOUT_PLANS[calc.workoutLevel];
+  const videoMap = buildVideoMap(d);
+  renderAll(d, calc, missions, mealPlan, {level: workoutPlan.level, weeks: workoutPlan.weeks, ...workout});
 }
 init();
 </script>
