@@ -215,10 +215,16 @@ module.exports = async function handler(req, res) {
     });
 
     // ── JSON 데이터 블록 (member.html 읽기용) ──
+    // Notion code 블록은 rich_text 항목당 2000자 제한 → 1900자씩 분할
     const planJsonStr = '__PLAN_DATA__' + JSON.stringify({ calc, missions, mealPlan, workout });
+    const CHUNK_SIZE = 1900;
+    const jsonChunks = [];
+    for (let i = 0; i < planJsonStr.length; i += CHUNK_SIZE) {
+      jsonChunks.push({ type: 'text', text: { content: planJsonStr.slice(i, i + CHUNK_SIZE) } });
+    }
     const jsonDataBlock = [{
       object: 'block', type: 'code',
-      code: { language: 'json', rich_text: [{ type: 'text', text: { content: planJsonStr } }] }
+      code: { language: 'json', rich_text: jsonChunks }
     }];
 
     // ── 페이지 생성 ──────────────────────────
