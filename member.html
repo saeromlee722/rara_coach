@@ -177,18 +177,24 @@ function pickSingleVeggie(mealType,badWords,usedVeggiesDay){const cands=(FOODS_D
 function pickCarbFromPool(mealType,usedCarbsByMeal){const pool=CARB_POOLS[mealType]||CARB_POOLS['아침'];const limit=CARB_POOL_LIMIT[mealType]||3;const used=usedCarbsByMeal[mealType]||[];const avail=pool.filter(c=>used.filter(u=>u===c).length<Math.ceil(7/limit));const chosen=avail.length?avail[Math.floor(Math.random()*avail.length)]:pool[Math.floor(Math.random()*pool.length)];usedCarbsByMeal[mealType]=[...used,chosen];return chosen;}
 function pickProteinFood(db,mealType,badWords,usedNames,seafoodCountRef){const isSeafoodOk=seafoodCountRef.count<MAX_SEAFOOD_PER_WEEK;const cands=db.filter(f=>{if(!f.meals?.includes(mealType))return false;const cat=(f.category||'').toLowerCase();if(!cat.includes('단백')&&!cat.includes('protein'))return false;if(badWords.some(b=>b&&f.name?.includes(b)))return false;if(SEAFOOD_NAMES.some(s=>f.name?.includes(s))&&!isSeafoodOk)return false;return true;});if(!cands.length)return null;const prio=cands.filter(f=>PRIORITY_PROTEINS.some(p=>f.name?.includes(p))&&!usedNames.has(f.name));const fb=cands.filter(f=>!usedNames.has(f.name));const pool=prio.length?prio:fb.length?fb:cands;const chosen=pool[Math.floor(Math.random()*pool.length)];if(chosen&&SEAFOOD_NAMES.some(s=>chosen.name?.includes(s)))seafoodCountRef.count++;if(chosen)usedNames.add(chosen.name);return chosen;}
 function makeGeneralMealSlot(mealType,targetKcal,macroRatio){const carbG=Math.round(targetKcal*macroRatio.carb/4),proteinG=Math.round(targetKcal*macroRatio.protein/4),fatG=Math.round(targetKcal*macroRatio.fat/9);return{portions:[{food:{name:'🍱 일반식',category:'일반식',kcal:0,amount:0},grams:0,kcal:targetKcal,protein:proteinG,carb:carbG,fat:fatG,role:'일반식',isGeneralMeal:true}],totalKcal:targetKcal,isGeneralMeal:true};}
+// ── 끼니별 식품 상한선 ─────────────────────
+const PROTEIN_MAX_G=150;
+const CARB_MAX_G_MAP={'오트밀':50,'귀리':50,'통밀식빵':80,'현미밥':150,'잡곡밥':150,'고구마':150,'바나나':120,'블루베리':100,'딸기':150,'키위':150};
+const CARB_MAX_G_DEFAULT=150;
+const VEGGIE_FIXED_G=100;
+function getCarbMaxG(name){for(const[k,v]of Object.entries(CARB_MAX_G_MAP)){if((name||'').includes(k))return v;}return CARB_MAX_G_DEFAULT;}
+
 function generateWeekMeal(calc,memberData){
   const targetCal=calc.targetCal,macroRatio=calc.macroRatio||{carb:0.40,protein:0.30,fat:0.30};
   const badWords=[...(memberData.싫어하는음식||'').split(/[,，\s]+/),...((memberData.알레르기||'')!=='없음'?(memberData.알레르기||'').split(/[,，\s]+/):[])].filter(Boolean);
-  const 식사횟수=memberData.식사횟수||'3끼';const mealTypes=식사횟수==='4끼 이상'?['아침','점심','간식','저녁']:['아침','점심','저녁'];
   const eatOutFreq=memberData.외식빈도||'';const hasFamilyMeal=(memberData.가족식사==='예')||(memberData.가족식사||'').includes('가족');
   const needsLunchSlot=eatOutFreq.includes('주 3')||eatOutFreq.includes('주 4')||eatOutFreq.includes('주 5')||eatOutFreq.includes('매일');
   const needsDinnerSlot=hasFamilyMeal;
   const usedCarbsByMeal={아침:[],점심:[],저녁:[],간식:[]};const seafoodCountRef={count:0};const usedNames=new Set();
-  const days=['월','화','수','목','금','토','일'];const weekPlan=[];
+  const days=['월','화','수','목','금','토','일'];const mainMealTypes=['아침','점심','저녁'];const weekPlan=[];
   for(let di=0;di<7;di++){
     const dayMeals={};
-    for(const mt of mealTypes){
+    for(const mt of mainMealTypes){
       const mealKcal=Math.round(targetCal*(MEAL_RATIO_MAP[mt]||0.30));
       if(mt==='점심'&&needsLunchSlot&&di%2===0){dayMeals[mt]=makeGeneralMealSlot(mt,mealKcal,macroRatio);continue;}
       if(mt==='저녁'&&needsDinnerSlot&&di%2===1){dayMeals[mt]=makeGeneralMealSlot(mt,mealKcal,macroRatio);continue;}
@@ -197,19 +203,32 @@ function generateWeekMeal(calc,memberData){
       const portions=[];
       const proteinKcal=Math.round(mealKcal*proteinSlotRatio);
       const pFood=FOODS_DB.length>0?pickProteinFood(FOODS_DB,mt,badWords,usedNames,seafoodCountRef):null;
-      if(pFood){const r=proteinKcal/pFood.kcal;const g=Math.min(Math.max(Math.round(r*pFood.amount/10)*10,50),200);const sc=g/pFood.amount;portions.push({food:pFood,grams:g,role:'단백질',kcal:Math.round(pFood.kcal*sc),protein:Math.round(pFood.protein*sc*10)/10,carb:Math.round(pFood.carb*sc*10)/10,fat:Math.round(pFood.fat*sc*10)/10});}
+      if(pFood){const r=proteinKcal/pFood.kcal;const g=Math.min(Math.max(Math.round(r*pFood.amount/10)*10,50),PROTEIN_MAX_G);const sc=g/pFood.amount;portions.push({food:pFood,grams:g,role:'단백질',kcal:Math.round(pFood.kcal*sc),protein:Math.round(pFood.protein*sc*10)/10,carb:Math.round(pFood.carb*sc*10)/10,fat:Math.round(pFood.fat*sc*10)/10});}
       else{const pName=PRIORITY_PROTEINS[di%PRIORITY_PROTEINS.length]||'닭가슴살';portions.push({food:{name:pName},grams:100,role:'단백질',kcal:proteinKcal,protein:Math.round(proteinKcal*0.85/4),carb:2,fat:Math.round(proteinKcal*0.05/9)});}
       const carbKcal=Math.round(mealKcal*carbSlotRatio);const carbName=pickCarbFromPool(mt,usedCarbsByMeal);
       const cFood=FOODS_DB.length>0?FOODS_DB.find(f=>f.name?.includes(carbName)&&f.meals?.includes(mt)):null;
-      if(cFood){const r=carbKcal/cFood.kcal;const g=Math.min(Math.max(Math.round(r*cFood.amount/10)*10,30),250);const sc=g/cFood.amount;portions.push({food:cFood,grams:g,role:'탄수화물',kcal:Math.round(cFood.kcal*sc),protein:Math.round(cFood.protein*sc*10)/10,carb:Math.round(cFood.carb*sc*10)/10,fat:Math.round(cFood.fat*sc*10)/10});}
+      if(cFood){const r=carbKcal/cFood.kcal;const maxG=getCarbMaxG(cFood.name);const g=Math.min(Math.max(Math.round(r*cFood.amount/10)*10,30),maxG);const sc=g/cFood.amount;portions.push({food:cFood,grams:g,role:'탄수화물',kcal:Math.round(cFood.kcal*sc),protein:Math.round(cFood.protein*sc*10)/10,carb:Math.round(cFood.carb*sc*10)/10,fat:Math.round(cFood.fat*sc*10)/10});}
       else{portions.push({food:{name:carbName},grams:130,role:'탄수화물',kcal:carbKcal,protein:Math.round(carbKcal*0.07/4),carb:Math.round(carbKcal*0.85/4),fat:Math.round(carbKcal*0.01/9)});}
       const veggieSlots=structure.slice(2);const usedVeggiesDay=new Set();
-      veggieSlots.forEach((slot,si)=>{if(si===0){const slotKcal=Math.round(mealKcal*slot.ratio);const vFood=pickSingleVeggie(mt,badWords,usedVeggiesDay);if(vFood){const r=slotKcal/vFood.kcal;const g=Math.min(Math.max(Math.round(r*vFood.amount/10)*10,50),200);const sc=g/vFood.amount;portions.push({food:vFood,grams:g,role:slot.role,kcal:Math.round(vFood.kcal*sc),protein:Math.round(vFood.protein*sc*10)/10,carb:Math.round(vFood.carb*sc*10)/10,fat:Math.round(vFood.fat*sc*10)/10});}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}});
+      veggieSlots.forEach((slot,si)=>{if(si===0){const vFood=pickSingleVeggie(mt,badWords,usedVeggiesDay);if(vFood){const g=VEGGIE_FIXED_G;const sc=g/vFood.amount;portions.push({food:vFood,grams:g,role:slot.role,kcal:Math.round(vFood.kcal*sc),protein:Math.round(vFood.protein*sc*10)/10,carb:Math.round(vFood.carb*sc*10)/10,fat:Math.round(vFood.fat*sc*10)/10});}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}});
       dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0)};
     }
-    weekPlan.push({day:days[di],dayIndex:di+1,meals:dayMeals,mealTypes});
+    // 간식: 3끼 실제 칼로리 합산 후 부족분 보충 (100~350kcal)
+    const actual3MealKcal=mainMealTypes.reduce((s,mt)=>s+(dayMeals[mt]?.totalKcal||0),0);
+    const snackTargetKcal=Math.min(Math.max(targetCal-actual3MealKcal,100),350);
+    const snackStructure=MEAL_STRUCTURE['간식'];
+    const snackPortions=[];
+    const spFood=FOODS_DB.length>0?pickProteinFood(FOODS_DB,'간식',badWords,usedNames,seafoodCountRef):null;
+    if(spFood){const snPKcal=Math.round(snackTargetKcal*(snackStructure[0]?.ratio||0.55));const r=snPKcal/spFood.kcal;const g=Math.min(Math.max(Math.round(r*spFood.amount/10)*10,30),150);const sc=g/spFood.amount;snackPortions.push({food:spFood,grams:g,role:'단백질',kcal:Math.round(spFood.kcal*sc),protein:Math.round(spFood.protein*sc*10)/10,carb:Math.round(spFood.carb*sc*10)/10,fat:Math.round(spFood.fat*sc*10)/10});}
+    else{snackPortions.push({food:{name:'그릭요거트'},grams:100,role:'단백질',kcal:Math.round(snackTargetKcal*0.55),protein:Math.round(snackTargetKcal*0.55*0.65/4),carb:Math.round(snackTargetKcal*0.55*0.15/4),fat:Math.round(snackTargetKcal*0.55*0.2/9)});}
+    const snCarbName=pickCarbFromPool('간식',usedCarbsByMeal);
+    const scFood=FOODS_DB.length>0?FOODS_DB.find(f=>f.name?.includes(snCarbName)&&f.meals?.includes('간식')):null;
+    if(scFood){const snCKcal=Math.round(snackTargetKcal*(snackStructure[1]?.ratio||0.45));const r=snCKcal/scFood.kcal;const g=Math.min(Math.max(Math.round(r*scFood.amount/10)*10,50),150);const sc=g/scFood.amount;snackPortions.push({food:scFood,grams:g,role:'과일',kcal:Math.round(scFood.kcal*sc),protein:Math.round(scFood.protein*sc*10)/10,carb:Math.round(scFood.carb*sc*10)/10,fat:Math.round(scFood.fat*sc*10)/10});}
+    else{snackPortions.push({food:{name:snCarbName},grams:100,role:'과일',kcal:Math.round(snackTargetKcal*0.45),protein:1,carb:Math.round(snackTargetKcal*0.45*0.9/4),fat:0});}
+    dayMeals['간식']={portions:snackPortions,totalKcal:snackPortions.reduce((s,p)=>s+p.kcal,0)};
+    weekPlan.push({day:days[di],dayIndex:di+1,meals:dayMeals,mealTypes:['아침','점심','간식','저녁']});
   }
-  return{weekPlan,mealTypes,targetCal,generalMealGuide:GENERAL_MEAL_GUIDE,hasGeneralMealSlots:needsLunchSlot||needsDinnerSlot};
+  return{weekPlan,mealTypes:['아침','점심','간식','저녁'],targetCal,generalMealGuide:GENERAL_MEAL_GUIDE,hasGeneralMealSlots:needsLunchSlot||needsDinnerSlot};
 }
 
 // ── 운동 플랜 ──
