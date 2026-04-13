@@ -692,25 +692,38 @@ function renderMissions(missions) {
 let swapTarget=null;
 
 function openSwap(dayIdx,mealType,roleIdx){
-  swapTarget={dayIdx,mealType,roleIdx};
   const day=currentMealPlan.weekPlan[dayIdx];
   const portion=day.meals[mealType].portions[roleIdx];
   const slot=MEAL_STRUCTURE[mealType][roleIdx];
-  document.getElementById('swap-title').textContent=mealType+' · '+slot.role+' 편집';
-  // 기본 탭: 그램 조절
-  switchSwapTab('gram');
-  // 그램 조절 탭 초기화
-  if(portion && !portion.isEmpty && portion.food){
-    const food=portion.food;
-    document.getElementById('gram-food-name').textContent=food.name+' (기준 '+food.amount+(food.unit||'g')+' / '+food.kcal+'kcal)';
-    const curG=portion.grams||food.amount||100;
-    document.getElementById('gram-slider').value=curG;
-    document.getElementById('gram-input').value=curG;
-    updateGramPreview(curG);
+  const isEmptySlot=portion?.isEmpty;
+
+  // 빈 슬롯(채소2,3)은 모든 카테고리 허용 / 채워진 슬롯은 원래 카테고리 유지
+  const ALL_CATS=['단백질','육류','해산물','탄수화물','곡류','채소','과일','유제품','지방'];
+  const activeCats=isEmptySlot?ALL_CATS:slot.cats;
+  swapTarget={dayIdx,mealType,roleIdx,cats:activeCats};
+
+  document.getElementById('swap-title').textContent=isEmptySlot
+    ?(mealType+' · 재료 추가 (자유 선택)')
+    :(mealType+' · '+slot.role+' 편집');
+
+  if(isEmptySlot){
+    // 빈 슬롯: 교체 탭으로 바로 열기 (그램 조절 탭 숨김)
+    document.getElementById('stab-gram').style.display='none';
+    switchSwapTab('swap');
+  } else {
+    document.getElementById('stab-gram').style.display='';
+    switchSwapTab('gram');
+    if(portion && !portion.isEmpty && portion.food){
+      const food=portion.food;
+      document.getElementById('gram-food-name').textContent=food.name+' (기준 '+food.amount+(food.unit||'g')+' / '+food.kcal+'kcal)';
+      const curG=portion.grams||food.amount||100;
+      document.getElementById('gram-slider').value=curG;
+      document.getElementById('gram-input').value=curG;
+      updateGramPreview(curG);
+    }
   }
-  // 교체 탭 초기화
   document.getElementById('swap-search').value='';
-  renderSwapList(slot.cats,mealType,'');
+  renderSwapList(activeCats,mealType,'');
   document.getElementById('swap-modal').style.display='flex';
 }
 
@@ -782,13 +795,14 @@ function applySwap(foodName){
   if(!food)return;
   const slot=MEAL_STRUCTURE[mealType][roleIdx];
   const mealKcal=Math.round(currentMealPlan.targetCal*(MEAL_RATIO_MAP[mealType]||0.30));
-  const slotKcal=Math.round(mealKcal*slot.ratio);
+  const slotRatio=slot?.ratio||0.10;
+  const slotKcal=Math.round(mealKcal*slotRatio);
   const r=slotKcal/food.kcal;
   const g=Math.min(Math.max(Math.round(r*food.amount/10)*10,20),300);
   const sc=g/food.amount;
   const day=currentMealPlan.weekPlan[dayIdx];
   const portions=day.meals[mealType].portions;
-  portions[roleIdx]={food,grams:g,role:slot.role,kcal:Math.round(food.kcal*sc),protein:Math.round(food.protein*sc*10)/10,carb:Math.round(food.carb*sc*10)/10,fat:Math.round(food.fat*sc*10)/10};
+  portions[roleIdx]={food,grams:g,role:slot?.role||'재료',kcal:Math.round(food.kcal*sc),protein:Math.round(food.protein*sc*10)/10,carb:Math.round(food.carb*sc*10)/10,fat:Math.round(food.fat*sc*10)/10};
   day.meals[mealType].totalKcal=portions.reduce((s,p)=>s+p.kcal,0);
   closeSwap();
   renderMeal(currentMealPlan);
@@ -796,9 +810,8 @@ function applySwap(foodName){
 
 function onSwapSearch(q){
   if(!swapTarget)return;
-  const{mealType,roleIdx}=swapTarget;
-  const slot=MEAL_STRUCTURE[mealType][roleIdx];
-  renderSwapList(slot.cats,mealType,q);
+  const{mealType,cats}=swapTarget;
+  renderSwapList(cats,mealType,q);
 }
 
 // ── 일반식 모달 ──
@@ -834,7 +847,7 @@ function renderMeal(mealPlan){
       } else {
         html+=`<div style="display:flex;flex-wrap:wrap;gap:6px;">`;
         meal.portions.forEach((p,pi)=>{
-          if(p.isEmpty){html+=`<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:#F8F8F8;padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px dashed #D0C8C0;color:#B0A090;">+ 채소 추가</div>`;return;}
+          if(p.isEmpty){html+=`<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:#F8F8F8;padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px dashed #D0C8C0;color:#B0A090;">+ 재료 추가</div>`;return;}
           const bg=catColor[p.food?.category]||'#F5F5F5';
           html+=`<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:${bg};padding:5px 10px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);"><span style="font-weight:500;color:var(--text);">${p.food.name}</span><span style="color:var(--text3);margin-left:4px;">${p.grams}${p.food.unit||'g'}</span><span style="color:var(--pink);margin-left:4px;">${p.kcal}kcal</span></div>`;
         });
