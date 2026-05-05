@@ -319,6 +319,7 @@ const DOMAIN_INFO = {
   수분:      { label:'수분 섭취',      emoji:'💧', bg:'var(--blue-bg)',   color:'var(--blue)' },
   걸음:      { label:'활동량 증가',    emoji:'👟', bg:'var(--green-bg)',  color:'var(--green)' },
   스트레스:  { label:'스트레스 관리',  emoji:'🧘', bg:'var(--green-bg)',  color:'var(--green)' },
+  자율신경:  { label:'자율신경 회복',  emoji:'🌿', bg:'var(--green-bg)',  color:'var(--green)' },
 };
 
 // 도메인별 4주 미션 (입문→정착→강화→마무리)
@@ -371,6 +372,12 @@ const DOMAIN_MISSIONS = {
     '스트레스 받을 때 음식 대신 10분 산책하기 — 주 3회',
     '한 달 스트레스 관리법 돌아보고 효과적인 것 1가지 정하기',
   ],
+  자율신경: [
+    '기상 후 바로 일어나지 말고 침대에서 발끝 당기기 4회 → 천천히 일어나기 — 주 5일',
+    '아침 5분 자율신경 루틴 실천 (발끝 당기기→고치법→팔밍→기지개) — 주 4일',
+    '눈 뜨자마자 스마트폰 대신 아침 5분 루틴 먼저 하기 — 주 5일',
+    '4주 아침 루틴 이행률 계산 + 다음 달 루틴 계획 세우기',
+  ],
 };
 
 // 데일리 미션 풀 (요일 테마별 + 설문 분기)
@@ -402,6 +409,7 @@ const DAILY_POOLS = {
     default: ['오늘 7시간 이상 수면 목표 세우기','자기 전 스트레칭 5분','오늘 감사한 것 1가지 기록하기','오늘 컨디션 점수 매기기 (1~10점)'],
     수면부족: ['오늘 취침 시간 30분 앞당기기','자기 전 핸드폰 30분 금지 도전','수면 전 5분 호흡 명상'],
     스트레스높음: ['5분 복식호흡 하기','오늘 스트레스 원인 1가지 기록하기','저녁 10분 산책 또는 명상'],
+    자율신경불량: ['기상 후 바로 일어나지 말고 발끝 당기기 4회 먼저 하기','아침 팔밍 40초 — 손 비벼 눈 덮고 호흡 고르기','기상 후 미지근한 물 한 잔 마시기','아침 커튼 열고 햇빛 5분 보기'],
   },
 };
 
@@ -411,15 +419,21 @@ const DAY_LABELS = ['월','화','수','목','금','토','일'];
 const DAY_THEMES = ['bodycheck','식단','활동','수분','행동교정','식단점검','회복'];
 
 function scoreDomains(d) {
+  // 운동여부 없으면 운동빈도 '주 0회' 또는 '안 함'으로 처리
+  const noExercise = d.운동여부==='안 함' || d.운동빈도?.includes('0') || !d.운동빈도;
   return {
     야식폭식: (d.야식==='있음'?3:0)+(d.폭식?.includes('자주')?3:d.폭식?.includes('가끔')?2:0),
     단백질:   (d.단백질섭취빈도?.includes('거의')?3:d.단백질섭취빈도?.includes('1회')?2:0),
     외식:     (d.외식빈도?.includes('매일')?3:(d.외식빈도?.includes('주 4')||d.외식빈도?.includes('주 5'))?2:d.외식빈도?.includes('주 3')?1:0),
-    운동:     (d.운동여부==='안 함'?3:d.운동빈도?.includes('주 1')?2:d.운동빈도?.includes('주 2')?1:0),
+    운동:     (noExercise?3:d.운동빈도?.includes('주 1')?2:d.운동빈도?.includes('주 2')?1:0),
     수면:     (d.수면시간==='5시간 미만'?3:d.수면시간==='5~6시간'?2:0)+(d.수면질&&d.수면질<=2?1:0),
     수분:     ((d.물섭취량||'').includes('1L 미만')||(d.물섭취량||'').includes('1L미만')?3:(d.물섭취량||'').includes('1~1.5')||(d.물섭취량||'').includes('1.5L 미만')?2:0),
     걸음:     (d.걸음수?.includes('3,000보 미만')?3:d.걸음수?.includes('5,000')?2:(d.걸음수?.includes('3,000~')||d.걸음수?.includes('3000~'))?1:0),
     스트레스: (d.스트레스>=4?3:d.스트레스>=3?2:0)+(d.피로도>=4?1:0),
+    자율신경: (d.기상어지러움==='자주 있음'?3:d.기상어지러움==='가끔 있음'?2:0)+
+              (d.기상후개운함==='자주 그렇다'?2:d.기상후개운함==='가끔 그렇다'?1:0)+
+              (d.아침심박불안==='자주 있음'?2:d.아침심박불안==='가끔 있음'?1:0)+
+              (d.기상직후스마트폰==='항상'?1:0),
   };
 }
 
@@ -448,7 +462,9 @@ function pickDailyMission(theme, d, weekNum, dayIdx) {
     if (d.폭식?.includes('자주')||d.폭식?.includes('가끔')) candidates = [...pool.폭식있음, ...candidates];
   }
   if (theme === '회복') {
-    if (d.스트레스>=4) candidates = [...pool.스트레스높음, ...candidates];
+    const hasANS = (d.기상어지러움==='자주 있음'||d.기상후개운함==='자주 그렇다'||d.아침심박불안==='자주 있음');
+    if (hasANS) candidates = [...pool.자율신경불량, ...candidates];
+    else if (d.스트레스>=4) candidates = [...pool.스트레스높음, ...candidates];
     else if (d.수면시간==='5시간 미만'||d.수면시간==='5~6시간') candidates = [...pool.수면부족, ...candidates];
   }
 
@@ -460,14 +476,16 @@ function pickDailyMission(theme, d, weekNum, dayIdx) {
 function generateMissions(d, calc) {
   const scores = scoreDomains(d);
   // 점수 내림차순 정렬
+  // 9개 도메인 중 점수 높은 순 상위 8개만 사용 (하위 1개 제외)
   const ranked = Object.entries(scores).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+  const top8 = ranked.slice(0, 8);
 
   // 주차별 도메인 페어 배정 (2개씩 4주)
   const weekDomainPairs = [
-    [ranked[0], ranked[1]],
-    [ranked[2], ranked[3]],
-    [ranked[4], ranked[5]],
-    [ranked[6], ranked[7]],
+    [top8[0], top8[1]],
+    [top8[2], top8[3]],
+    [top8[4], top8[5]],
+    [top8[6], top8[7]],
   ];
 
   const weeks = weekDomainPairs.map(([dom1, dom2], wi) => {
