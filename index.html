@@ -335,6 +335,8 @@ const DOMAIN_INFO = {
   걸음:      { label:'활동량 증가',    emoji:'👟', bg:'var(--green-bg)',  color:'var(--green)' },
   스트레스:  { label:'스트레스 관리',  emoji:'🧘', bg:'var(--green-bg)',  color:'var(--green)' },
   자율신경:  { label:'자율신경 회복',  emoji:'🌿', bg:'var(--green-bg)',  color:'var(--green)' },
+  저녁루틴:  { label:'저녁 마무리 루틴', emoji:'🌛', bg:'var(--purple-bg)', color:'var(--purple)' },
+  식사행동:  { label:'식사 행동 개선',   emoji:'🥢', bg:'var(--pink-light)', color:'var(--pink-dark)' },
 };
 
 // 도메인별 4주 미션 (입문→정착→강화→마무리)
@@ -393,12 +395,24 @@ const DOMAIN_MISSIONS = {
     '눈 뜨자마자 스마트폰 대신 아침 5분 루틴 먼저 하기 — 주 5일',
     '4주 아침 루틴 이행률 계산 + 다음 달 루틴 계획 세우기',
   ],
+  저녁루틴: [
+    '취침 1시간 전 조명 어둡게 하고 스마트폰 뒤집어 놓기 — 주 5일',
+    '자기 전 미지근한 샤워 또는 족욕 10분 도전 — 주 4일',
+    '취침 30분 전 내일 식단·일정 30초 머릿속으로 그려보기 — 주 5일',
+    '4주 저녁 루틴 이행률 계산 + 수면 질 변화 체감해보기',
+  ],
+  식사행동: [
+    '한 끼 천천히 20분 이상 먹기 — 젓가락·포크 중간에 내려놓기',
+    '식사 중 핸드폰·TV 끄기 도전 — 주 4일',
+    '배부름 80%에서 멈추기 + 식후 10분 걷기 — 주 3회',
+    '이번 주 식사 패턴 돌아보기 — 감정적 식욕 vs 생리적 배고픔 구분해서 기록',
+  ],
 };
 
 // 데일리 미션 풀 (요일 테마별 + 설문 분기)
 const DAILY_POOLS = {
   식단: {
-    default: ['단백질 먼저 먹고 탄수화물 먹기','식사 사진 찍어서 오늘 식단 기록하기','한 끼 천천히 20분 이상 먹기','배부름 80%에서 멈추기','가공식품 안 먹기 도전','오늘 한 끼 채소 2배로 먹기','평소보다 밥 20% 줄이기'],
+    default: ['단백질 먼저 먹고 탄수화물 먹기','식사 사진 찍어서 오늘 식단 기록하기','한 끼 천천히 20분 이상 먹기','배부름 80%에서 멈추기','가공식품 안 먹기 도전','오늘 한 끼 채소 2배로 먹기','평소보다 밥 20% 줄이기','식사 중 핸드폰·TV 끄고 음식에 집중하기','식후 10분 걷기 도전','오늘 감정적 식욕 vs 배고픔 구분해서 기록하기'],
     폭식있음: ['폭식 충동 느낄 때 10초 멈추고 기록하기','배고픔 vs 식욕 구분해서 기록하기','식사 중 핸드폰 내려놓기','한 끼만 배부름 80%에서 멈추기 도전'],
     단백질부족: ['오늘 매끼 단백질 포함 여부 체크하기','단백질 식품 2가지 이상 먹기 도전','달걀 또는 닭가슴살 한 끼 추가하기'],
   },
@@ -425,7 +439,32 @@ const DAILY_POOLS = {
     수면부족: ['오늘 취침 시간 30분 앞당기기','자기 전 핸드폰 30분 금지 도전','수면 전 5분 호흡 명상'],
     스트레스높음: ['5분 복식호흡 하기','오늘 스트레스 원인 1가지 기록하기','저녁 10분 산책 또는 명상'],
     자율신경불량: ['기상 후 바로 일어나지 말고 발끝 당기기 4회 먼저 하기','아침 팔밍 40초 — 손 비벼 눈 덮고 호흡 고르기','기상 후 미지근한 물 한 잔 마시기','아침 커튼 열고 햇빛 5분 보기'],
+    저녁루틴추가: ['취침 1시간 전 조명 어둡게 하기','자기 전 미지근한 샤워 또는 족욕 10분 하기','발 따뜻하게 하고 자기 — 혈류 말초 이동으로 수면 유도','취침 전 카페인 0잔 도전'],
   },
+  저녁루틴: {
+    default: ['취침 1시간 전 조명 어둡게 하기','자기 전 스트레칭 5분 + 호흡 3회','오늘 잘한 것 1가지 머릿속으로 생각하며 잠들기','내일 아침 식단 30초 미리 생각해두기'],
+    수면부족: ['오늘 취침 시간 30분 앞당기기 도전','자기 전 핸드폰 30분 금지 + 조명 어둡게 하기','미지근한 발 담그기 10분 → 잠드는 시간 단축'],
+    스트레스높음: ['취침 전 4-2-6 호흡 3세트 (4초 들이마시기·2초 멈추기·6초 내쉬기)','오늘 스트레스 원인 1줄 적고 내려놓기','아로마 또는 따뜻한 허브티 한 잔으로 마무리'],
+  },
+  // 생리 페이즈 맞춤 미션
+  생리기간미션: [
+    '오늘은 가벼운 운동만 — 스트레칭 또는 산책 10분',
+    '따뜻한 물 자주 마시기 + 복부 따뜻하게 하기',
+    '철분 식품 챙기기 — 시금치·두부·계란 중 하나 포함하기',
+    '오늘 몸 상태 10점 만점으로 기록해두기',
+  ],
+  PMS미션: [
+    '당분·카페인 줄이기 — 오늘 커피 1잔 이하, 단 음식 자제',
+    '마그네슘 식품 챙기기 — 견과류·바나나·두부 중 하나 포함',
+    '복부 온찜질 10분 + 감정 기록 1줄 써보기',
+    '오늘 식욕이 올라온다면 — 단백질 먼저 먹고 천천히 먹기',
+  ],
+  배란기미션: [
+    '오늘은 운동 강도 높이기 좋은 시기 — 라라어트 영상 도전',
+    '단백질 충분히 챙기기 — 매끼 단백질 식품 포함 확인',
+    '에너지 높은 날 — 냉장고 채우기·식단 준비 미리 해두기',
+    '오늘 컨디션 최고점 기록해두기',
+  ],
 };
 
 const BODY_CHECK_TEXT = '📸 눈바디 촬영 + ⚖️ 공복 체중 측정 + 📏 허리·엉덩이·허벅지 둘레 측정';
@@ -449,6 +488,13 @@ function scoreDomains(d) {
               (d.기상후개운함==='자주 그렇다'?2:d.기상후개운함==='가끔 그렇다'?1:0)+
               (d.아침심박불안==='자주 있음'?2:d.아침심박불안==='가끔 있음'?1:0)+
               (d.기상직후스마트폰==='항상'?1:0),
+    저녁루틴: (d.수면질&&d.수면질<=2?2:0)+
+              (d.취침시간?.includes('1시 이후')?2:d.취침시간?.includes('자정')||d.취침시간?.includes('23시')?1:0)+
+              (d.수면시간==='5시간 미만'?2:d.수면시간==='5~6시간'?1:0),
+    식사행동: (d.식사속도?.includes('빠름')?2:0)+
+              (d.폭식?.includes('자주')?2:d.폭식?.includes('가끔')?1:0)+
+              (d.과식빈도?.includes('자주')?1:0)+
+              (d.끼니거르는빈도?.includes('주 3')||d.끼니거르는빈도?.includes('자주')?1:0),
   };
 }
 
@@ -479,8 +525,14 @@ function pickDailyMission(theme, d, weekNum, dayIdx) {
   if (theme === '회복') {
     const hasANS = (d.기상어지러움==='자주 있음'||d.기상후개운함==='자주 그렇다'||d.아침심박불안==='자주 있음');
     if (hasANS) candidates = [...pool.자율신경불량, ...candidates];
-    else if (d.스트레스>=4) candidates = [...pool.스트레스높음, ...candidates];
-    else if (d.수면시간==='5시간 미만'||d.수면시간==='5~6시간') candidates = [...pool.수면부족, ...candidates];
+    else if (d.스트레스>=4) candidates = [...(pool.스트레스높음||[]), ...candidates];
+    else if (d.수면시간==='5시간 미만'||d.수면시간==='5~6시간') candidates = [...(pool.수면부족||[]), ...candidates];
+    if (d.수면질&&d.수면질<=2) candidates = [...(pool.저녁루틴추가||[]), ...candidates];
+  }
+  if (theme === '저녁루틴') {
+    if (!pool) return '오늘 저녁 마무리 루틴 1가지 실천하기';
+    if (d.스트레스>=4) candidates = [...(pool.스트레스높음||[]), ...candidates];
+    else if (d.수면시간==='5시간 미만'||d.수면시간==='5~6시간') candidates = [...(pool.수면부족||[]), ...candidates];
   }
 
   // 주차+요일로 고정 시드 → 같은 회원은 항상 동일 패턴
@@ -512,13 +564,35 @@ function generateMissions(d, calc) {
       theme: WEEK_THEMES[wi],
       mission1: { domainKey:dom1, ...info1, text:DOMAIN_MISSIONS[dom1][wi], score:scores[dom1] },
       mission2: { domainKey:dom2, ...info2, text:DOMAIN_MISSIONS[dom2][wi], score:scores[dom2] },
-      dailyMissions: DAY_THEMES.map((theme, di) => ({
-        dayNum: wi * 7 + di + 1,
-        dayLabel: DAY_LABELS[di],
-        theme,
-        isBodyCheck: theme === 'bodycheck',
-        text: pickDailyMission(theme, d, weekNum, di),
-      })),
+      dailyMissions: DAY_THEMES.map((theme, di) => {
+        const dayNum = wi * 7 + di + 1;
+        // 생리 페이즈 확인
+        let cyclePhase = null;
+        let cycleMission = null;
+        if (coachingStartDate && d.성별 === '여성' && d.마지막생리시작일) {
+          const cycles = calcCycles(d, coachingStartDate, 28);
+          if (cycles) {
+            const dayDate = addDays(coachingStartDate, dayNum - 1);
+            cyclePhase = getCyclePhase(dayDate, cycles);
+            if (cyclePhase === 'period') {
+              cycleMission = DAILY_POOLS.생리기간미션[di % DAILY_POOLS.생리기간미션.length];
+            } else if (cyclePhase === 'pms') {
+              cycleMission = DAILY_POOLS.PMS미션[di % DAILY_POOLS.PMS미션.length];
+            } else if (cyclePhase === 'ovul') {
+              cycleMission = DAILY_POOLS.배란기미션[di % DAILY_POOLS.배란기미션.length];
+            }
+          }
+        }
+        return {
+          dayNum,
+          dayLabel: DAY_LABELS[di],
+          theme,
+          isBodyCheck: theme === 'bodycheck',
+          text: pickDailyMission(theme, d, weekNum, di),
+          cyclePhase,
+          cycleMission,
+        };
+      }),
       domainScores: scores,
     };
   });
@@ -826,26 +900,22 @@ function renderMissions(missions) {
     }
 
     const dailyBoxes = w.dailyMissions.map(dm => {
-      // 각 데일리 박스에 생리 페이즈 표시
-      let phaseStyle = '';
-      let phaseLabel = '';
-      if (coachingStartDate && currentData?.성별 === '여성' && currentData?.마지막생리시작일) {
-        const programDays = parseInt(document.getElementById('coaching-program-select')?.value||'28');
-        const cycles = calcCycles(currentData, coachingStartDate, programDays);
-        const dayDate = addDays(coachingStartDate, dm.dayNum-1);
-        const phase = getCyclePhase(dayDate, cycles);
-        if (phase) {
-          const b = CYCLE_BADGE[phase];
-          phaseStyle = `border-color:${b.color}50;`;
-          phaseLabel = `<div style="font-size:8px;color:${b.color};font-weight:600;">${phase==='period'?'🔴':phase==='pms'?'🟡':'🌸'}</div>`;
-        }
-      }
-      return `<div class="daily-box ${dm.isBodyCheck ? 'body-check' : ''}" style="${phaseStyle}">
-        <div class="daily-day">${dm.dayLabel}</div>
-        <div class="daily-num">Day${dm.dayNum}</div>
-        ${phaseLabel}
-        <div class="daily-txt">${dm.text}</div>
-      </div>`;
+      // generateMissions에서 이미 계산된 cyclePhase/cycleMission 사용
+      const phase = dm.cyclePhase;
+      const b = phase ? CYCLE_BADGE[phase] : null;
+      const phaseStyle = b ? 'border-color:'+b.color+'50;' : '';
+      const phaseIcon = phase==='period'?'🔴':phase==='pms'?'🟡':phase==='ovul'?'🌸':'';
+      const phaseLabel = b ? '<div style="font-size:8px;color:'+b.color+';font-weight:600;">'+phaseIcon+'</div>' : '';
+      const cycleMissionHtml = dm.cycleMission
+        ? '<div style="font-size:9px;color:'+b.color+';background:'+b.bg+';border-radius:3px;padding:2px 4px;margin-top:3px;line-height:1.3;">'+dm.cycleMission+'</div>'
+        : '';
+      return '<div class="daily-box '+(dm.isBodyCheck?'body-check':'')+'" style="'+phaseStyle+'">'
+        + '<div class="daily-day">'+dm.dayLabel+'</div>'
+        + '<div class="daily-num">Day'+dm.dayNum+'</div>'
+        + phaseLabel
+        + '<div class="daily-txt">'+dm.text+'</div>'
+        + cycleMissionHtml
+        + '</div>';
     }).join('');
 
     return `
