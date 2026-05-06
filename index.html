@@ -679,6 +679,78 @@ const MEAL_COMBOS = {
   ],
 };
 
+// ── 끼니별 어울리는 채소 조합 (컨텍스트 기반) ──────────
+// 오트밀+계란 아침엔 브로콜리/방울토마토/양배추만, 샐러리 등 이질적인 채소 ❌
+const VEGGIE_PAIRING = {
+  아침: {
+    기본: ['브로콜리','방울토마토','양배추','오이'],          // 오트밀+계란 맥락
+    두부오트밀: ['방울토마토','시금치','브로콜리'],
+    바나나계란: [],   // 바나나+계란+두유 조합엔 채소 없음
+  },
+  점심: {
+    기본: ['아스파라거스','브로콜리','파프리카','양배추','시금치','방울토마토'],
+    닭현미: ['아스파라거스','브로콜리','파프리카'],
+    틸라피아현미: ['브로콜리','시금치','방울토마토'],
+    두부현미: ['시금치','브로콜리','애호박'],
+  },
+  저녁: {
+    기본: ['아스파라거스','브로콜리','양배추','시금치','느타리버섯'],
+    저탄수: ['아스파라거스','브로콜리','시금치','애호박'],     // 탄수 없거나 단호박일 때
+  },
+  간식: { 기본: [] },
+};
+
+// 탄수 선택 기준 (순탄수 내림차순: 밥 > 고구마 > 밤호박 > 단호박)
+// 저녁에 탄수 줄일 때, 또는 점심에 밥이 이미 들어간 경우에 구황작물 사용
+const CARB_HIERARCHY = {
+  밥: ['현미밥'],
+  구황: ['고구마', '밤호박', '단호박'],  // 순탄수 줄이는 순서
+};
+
+function selectEveningCarb(dayMeals, goalType) {
+  // 저녁 탄수 선택 로직
+  const lunchMeal = dayMeals['점심'];
+  const lunchHadRice = lunchMeal && !lunchMeal.isGeneralMeal &&
+    lunchMeal.portions?.some(p => p.food?.name?.includes('현미밥'));
+  const lunchWasGeneral = lunchMeal?.isGeneralMeal;
+
+  // 점심이 일반식/자유식이었으면 저녁 탄수 제외 (가끔만)
+  if (lunchWasGeneral) return null;  // 탄수 없음
+
+  // 점심에 밥이 들어갔으면 저녁엔 구황작물
+  if (lunchHadRice) return CARB_HIERARCHY.구황[0]; // 고구마 우선
+
+  // 감량 집중이면 저녁 탄수 줄이기 → 고구마/단호박
+  if (goalType === 'general_cut' || goalType === 'conservative_cut') {
+    return CARB_HIERARCHY.구황[0]; // 고구마
+  }
+  if (goalType === 'gain') return '현미밥';
+
+  return '고구마'; // 기본값
+}
+
+function pickVeggieForCombo(comboName, mealType) {
+  // 조합 이름 기반으로 어울리는 채소 선택
+  const section = VEGGIE_PAIRING[mealType];
+  if (!section) return null;
+
+  let pool = section.기본 || [];
+
+  if (mealType === '아침') {
+    if (comboName?.includes('바나나')) pool = [];
+    else if (comboName?.includes('두부')) pool = section.두부오트밀 || pool;
+    else pool = section.기본;
+  } else if (mealType === '점심') {
+    if (comboName?.includes('틸라피아')) pool = section.틸라피아현미 || pool;
+    else if (comboName?.includes('두부')) pool = section.두부현미 || pool;
+    else if (comboName?.includes('닭가슴살') || comboName?.includes('우둔살')) pool = section.닭현미 || pool;
+  } else if (mealType === '저녁') {
+    if (!comboName?.includes('현미')) pool = section.저탄수 || pool;
+  }
+
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+}
+
 // 회원 프로필에 맞는 조합 선택
 function pickCombo(mealType, goalType, badWords, usedProteins, dayIndex) {
   const pool = MEAL_COMBOS[mealType] || [];
@@ -757,7 +829,6 @@ function generateWeekMeal(calc,memberData){
           portions.push({food:pFood, grams:g, role:'단백질', kcal:Math.round(pFood.kcal*sc), protein:Math.round(pFood.protein*sc*10)/10, carb:Math.round(pFood.carb*sc*10)/10, fat:Math.round(pFood.fat*sc*10)/10});
           usedNames.add(pFood.name);
         } else {
-          // food DB에 없으면 랜덤 fallback
           const pFallback = pickProteinFood(FOODS_DB, mt, badWords, usedNames, seafoodCountRef);
           if (pFallback) {
             const r = proteinKcal / pFallback.kcal;
@@ -767,23 +838,33 @@ function generateWeekMeal(calc,memberData){
           }
         }
 
-        // 탄수화물
+        // ── 탄수화물 (저녁은 selectEveningCarb 우선 적용) ──
         const carbKcal = Math.round(mealKcal * carbSlotRatio);
-        const carbName = combo.carb || pickCarbFromPool(mt, usedCarbsByMeal);
-        const cFood = combo.carb ? findFoodByName(combo.carb) : FOODS_DB.find(f => f.name?.includes(carbName) && f.meals?.includes(mt));
-        if (cFood) {
-          const r = carbKcal / cFood.kcal;
-          const maxG = getCarbMaxG(cFood.name);
-          const g = Math.min(Math.max(Math.round(r * cFood.amount / 10) * 10, 30), maxG);
-          const sc = g / cFood.amount;
-          portions.push({food:cFood, grams:g, role:'탄수화물', kcal:Math.round(cFood.kcal*sc), protein:Math.round(cFood.protein*sc*10)/10, carb:Math.round(cFood.carb*sc*10)/10, fat:Math.round(cFood.fat*sc*10)/10});
-        } else if (carbName) {
-          portions.push({food:{name:carbName}, grams:130, role:'탄수화물', kcal:carbKcal, protein:Math.round(carbKcal*0.07/4), carb:Math.round(carbKcal*0.85/4), fat:Math.round(carbKcal*0.01/9)});
+        let resolvedCarbName = combo.carb;
+        if (mt === '저녁') {
+          const eveningCarb = selectEveningCarb(dayMeals, calc.goalType);
+          if (eveningCarb === null) {
+            // 저녁 탄수 제외 (점심이 일반식이었을 때)
+            resolvedCarbName = null;
+          } else {
+            resolvedCarbName = eveningCarb;
+          }
         }
-        // 탄수 사용 기록
-        if (combo.carb) usedCarbsByMeal[mt] = [...(usedCarbsByMeal[mt]||[]), combo.carb];
+        if (resolvedCarbName) {
+          const cFood = findFoodByName(resolvedCarbName) || FOODS_DB.find(f => f.name?.includes(resolvedCarbName) && f.meals?.includes(mt));
+          if (cFood) {
+            const r = carbKcal / cFood.kcal;
+            const maxG = getCarbMaxG(cFood.name);
+            const g = Math.min(Math.max(Math.round(r * cFood.amount / 10) * 10, 30), maxG);
+            const sc = g / cFood.amount;
+            portions.push({food:cFood, grams:g, role:'탄수화물', kcal:Math.round(cFood.kcal*sc), protein:Math.round(cFood.protein*sc*10)/10, carb:Math.round(cFood.carb*sc*10)/10, fat:Math.round(cFood.fat*sc*10)/10});
+          } else {
+            portions.push({food:{name:resolvedCarbName}, grams:130, role:'탄수화물', kcal:carbKcal, protein:Math.round(carbKcal*0.07/4), carb:Math.round(carbKcal*0.85/4), fat:Math.round(carbKcal*0.01/9)});
+          }
+          usedCarbsByMeal[mt] = [...(usedCarbsByMeal[mt]||[]), resolvedCarbName];
+        }
 
-        // extraCarb (블루베리 등 추가 탄수)
+        // extraCarb (블루베리 등)
         if (combo.extraCarb) {
           const eFood = findFoodByName(combo.extraCarb);
           if (eFood) {
@@ -792,9 +873,9 @@ function generateWeekMeal(calc,memberData){
           }
         }
 
-        // 채소1 (조합 지정 채소 우선)
-        const v1Name = combo.veggie;
-        const v1Food = v1Name ? findFoodByName(v1Name) : pickSingleVeggie(mt, badWords, new Set());
+        // ── 채소1 (VEGGIE_PAIRING 기반으로 조합에 어울리는 채소 선택) ──
+        const pairedVeggieName = pickVeggieForCombo(combo.name, mt);
+        const v1Food = pairedVeggieName ? findFoodByName(pairedVeggieName) : pickSingleVeggie(mt, badWords, new Set());
         if (v1Food) {
           const g = VEGGIE_FIXED_G; const sc = g / v1Food.amount;
           portions.push({food:v1Food, grams:g, role:'채소1', kcal:Math.round(v1Food.kcal*sc), protein:Math.round(v1Food.protein*sc*10)/10, carb:Math.round(v1Food.carb*sc*10)/10, fat:Math.round(v1Food.fat*sc*10)/10});
