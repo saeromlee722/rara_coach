@@ -123,8 +123,10 @@
       <div class="tab" onclick="showTab('workout',this)">🏋️ 운동 플랜</div>
     </div>
     <div class="tab-content on" id="tab-summary">
+      <div class="card"><div class="card-title">코칭 기간</div><div id="coaching-period-section">-</div></div>
       <div class="card"><div class="card-title">목표 칼로리</div><div class="cal-grid" id="cal-grid"></div></div>
       <div class="card"><div class="card-title">탄단지 분배</div><div id="macro-section"></div></div>
+      <div id="cycle-calendar-card"></div>
     </div>
     <div class="tab-content" id="tab-mission"><div id="mission-section"></div></div>
     <div class="tab-content" id="tab-meal">
@@ -243,6 +245,27 @@ function showTab(id,el){document.querySelectorAll('.tab-content').forEach(t=>t.c
 function toggleBlock(headEl){const body=headEl.nextElementSibling;const chevron=headEl.querySelector('.chevron');body.classList.toggle('open');if(chevron)chevron.classList.toggle('open');}
 
 // savedCalc, savedMissions, savedMealPlan, savedWorkout 가 있으면 그걸 사용 (코치 수정사항 반영)
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function fmtDate(d){if(!d)return'-';return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
+const CYCLE_BADGE={period:{label:'🔴 생리기간',bg:'#FCEBEB',color:'#A32D2D'},pms:{label:'🟡 PMS기간',bg:'#FEF9E7',color:'#854F0B'},ovul:{label:'🌸 배란기',bg:'#FDF0F7',color:'#993556'}};
+function calcCycles(d,startDate,totalDays){
+  if(!d.마지막생리시작일||d.성별!=='여성')return null;
+  const cycleLen=parseInt(d.생리주기일수)||28,periodLen=parseInt(d.생리기간일수)||5,pmsLen=6;
+  const last=new Date(d.마지막생리시작일),end=addDays(startDate,totalDays);
+  const results=[];let cur=new Date(last);
+  while(cur<end){
+    const pEnd=addDays(cur,periodLen-1),pmsS=addDays(cur,-pmsLen),pmsE=addDays(cur,-1),ovD=addDays(cur,cycleLen-14);
+    if(pEnd>=startDate||pmsE>=startDate||addDays(ovD,2)>=startDate)results.push({periodStart:new Date(cur),periodEnd:pEnd,pmsStart:pmsS,pmsEnd:pmsE,ovulStart:addDays(ovD,-2),ovulEnd:addDays(ovD,2)});
+    cur=addDays(cur,cycleLen);
+  }
+  return results;
+}
+function getCyclePhase(date,cycles){
+  if(!cycles)return null;
+  for(const c of cycles){if(date>=c.periodStart&&date<=c.periodEnd)return'period';if(date>=c.pmsStart&&date<=c.pmsEnd)return'pms';if(date>=c.ovulStart&&date<=c.ovulEnd)return'ovul';}
+  return null;
+}
+
 function renderAll(d, savedCalc, savedMissions, savedMealPlan, savedWorkout){
   const calc = savedCalc || calcAll(d);
   const missions = savedMissions || generateMissions(d,calc);
@@ -255,14 +278,58 @@ function renderAll(d, savedCalc, savedMissions, savedMealPlan, savedWorkout){
   document.getElementById('hero-sub').textContent=`${d.나이||'-'}세 · ${d.성별||'-'} · ${d.프로그램||'온라인 코칭'}`;
   document.getElementById('hero-tags').innerHTML=[{text:d.목표||'-',bg:'var(--pink-light)',color:'var(--pink-dark)'},{text:plan.level,bg:'var(--blue-bg)',color:'var(--blue)'},{text:`목표 ${calc.targetCal.toLocaleString()}kcal`,bg:'var(--amber-bg)',color:'var(--amber)'}].map(t=>`<span class="tag" style="background:${t.bg};color:${t.color}">${t.text}</span>`).join('');
 
+  // 코칭 기간 (저장된 플랜에 coachingStartDate/programDays 가 있으면 사용)
+  const startD = savedWorkout?.coachingStartDate ? new Date(savedWorkout.coachingStartDate) : null;
+  const progDays = savedWorkout?.programDays || 28;
+  const endD = startD ? addDays(startD, progDays-1) : null;
+  const progLabel = progDays===28?'4주 프로그램':'9주 프로그램';
+  document.getElementById('coaching-period-section').innerHTML = startD
+    ? `<div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div class="cal-box"><div class="cal-label">시작일</div><div class="cal-val" style="font-size:16px;">${fmtDate(startD)}</div></div>
+        <div class="cal-box"><div class="cal-label">종료일</div><div class="cal-val" style="font-size:16px;">${fmtDate(endD)}</div></div>
+        <div class="cal-box highlight"><div class="cal-label">프로그램</div><div class="cal-val pink" style="font-size:14px;">${progLabel}</div></div>
+      </div>`
+    : '<div style="font-size:13px;color:var(--text3);">코칭 시작일이 아직 설정되지 않았어요.</div>';
+
+  // 생리 캘린더
+  const cyclCard = document.getElementById('cycle-calendar-card');
+  if(d.성별==='여성'&&d.마지막생리시작일&&startD){
+    const cycles=calcCycles(d,startD,progDays);
+    const days=['월','화','수','목','금','토','일'];
+    let gridHtml='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:10px;">';
+    gridHtml+=days.map(dl=>`<div style="text-align:center;font-size:10px;color:var(--text3);padding:4px 0;">${dl}</div>`).join('');
+    const startDow=(startD.getDay()+6)%7;
+    for(let i=0;i<startDow;i++)gridHtml+='<div></div>';
+    for(let i=0;i<progDays;i++){
+      const dt=addDays(startD,i);const phase=getCyclePhase(dt,cycles);const b=phase?CYCLE_BADGE[phase]:null;
+      const bg=b?b.bg:'var(--cream)',col=b?b.color:'var(--text3)',border=b?`1px solid ${b.color}40`:'1px solid var(--border)';
+      gridHtml+=`<div style="background:${bg};border:${border};border-radius:4px;padding:4px 2px;text-align:center;"><div style="font-size:10px;color:${col};font-weight:${b?'600':'400'};">${i+1}</div><div style="font-size:8px;color:${col};">${dt.getMonth()+1}/${dt.getDate()}</div></div>`;
+    }
+    gridHtml+='</div>';
+    const legend=Object.values(CYCLE_BADGE).map(b=>`<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:${b.bg};color:${b.color};">${b.label}</span>`).join(' ');
+    cyclCard.innerHTML=`<div class="card"><div class="card-title">생리 캘린더</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">마지막 생리 시작일: ${d.마지막생리시작일} · 주기 ${parseInt(d.생리주기일수)||28}일 · 생리기간 ${parseInt(d.생리기간일수)||5}일</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">${legend}</div>${gridHtml}</div>`;
+  } else { cyclCard.innerHTML=''; }
+
   document.getElementById('cal-grid').innerHTML=`<div class="cal-box"><div class="cal-label">기초대사량 BMR</div><div class="cal-val">${calc.bmr.toLocaleString()}<span>kcal</span></div></div><div class="cal-box"><div class="cal-label">활동대사량 TDEE</div><div class="cal-val">${calc.tdee.toLocaleString()}<span>kcal</span></div></div><div class="cal-box highlight"><div class="cal-label">🎯 목표 섭취 칼로리</div><div class="cal-val pink">${calc.targetCal.toLocaleString()}<span>kcal</span></div></div>`;
   document.getElementById('macro-section').innerHTML=`<div class="macro-bar"><div class="bar-p" style="width:${calc.proteinPct}%"></div><div class="bar-c" style="width:${calc.carbPct}%"></div><div class="bar-f" style="width:${calc.fatPct}%"></div></div><div class="macro-legend"><span><span class="dot" style="background:var(--pink)"></span>단백질 ${calc.protein}g (${calc.proteinPct}%)</span><span><span class="dot" style="background:#F4C0D1"></span>탄수화물 ${calc.carb}g (${calc.carbPct}%)</span><span><span class="dot" style="background:#FAC775"></span>지방 ${calc.fat}g (${calc.fatPct}%)</span></div><div style="margin-top:10px;font-size:12px;color:var(--text3);">활동계수 ${calc.totalFactor} · ${calc.safetyFlag?'⚠️ Safety Flag ON':'Safety Flag OFF'} · ${calc.userType}</div>`;
 
-  // 미션 렌더링
+  // 미션 렌더링 — 생리 사이클 뱃지 포함
   const weekHtml=missions.weeks.map(w=>{
     const m1=w.mission1,m2=w.mission2;
-    const dailyBoxes=w.dailyMissions.map(dm=>`<div class="daily-box ${dm.isBodyCheck?'body-check':''}"><div class="daily-day">${dm.dayLabel}</div><div class="daily-num">Day${dm.dayNum}</div><div class="daily-txt">${dm.text}</div></div>`).join('');
-    return `<div class="week-block"><div class="week-head" onclick="toggleBlock(this)"><div><span class="week-num">${w.weekNum}주차</span><span class="week-theme" style="margin-left:8px;">· ${w.theme}</span></div><span class="chevron">▼</span></div><div class="week-body ${w.weekNum===1?'open':''}"><div class="mission-row"><span class="mbadge" style="background:${m1.bg};color:${m1.color};">${m1.emoji} ${m1.label}</span><span class="mission-txt">${m1.text}</span></div><div class="mission-row"><span class="mbadge" style="background:${m2.bg};color:${m2.color};">${m2.emoji} ${m2.label}</span><span class="mission-txt">${m2.text}</span></div><div class="daily-section"><div class="daily-title">데일리 미션 · Day ${(w.weekNum-1)*7+1}–${w.weekNum*7}</div><div class="daily-grid">${dailyBoxes}</div></div></div></div>`;
+    let cycleBadge='';
+    if(startD&&d.성별==='여성'&&d.마지막생리시작일){
+      const cycles=calcCycles(d,startD,progDays);
+      if(cycles){const phaseSet=new Set();for(let i=0;i<7;i++){const p=getCyclePhase(addDays(startD,(w.weekNum-1)*7+i),cycles);if(p)phaseSet.add(p);}
+      if(phaseSet.size>0)cycleBadge='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'+[...phaseSet].map(p=>{const b=CYCLE_BADGE[p];return`<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:${b.bg};color:${b.color};">${b.label}</span>`;}).join('')+'</div>';}
+    }
+    const dailyBoxes=w.dailyMissions.map(dm=>{
+      let phaseLabel='';
+      if(startD&&d.성별==='여성'&&d.마지막생리시작일){const cycles=calcCycles(d,startD,progDays);const phase=getCyclePhase(addDays(startD,dm.dayNum-1),cycles);if(phase){const b=CYCLE_BADGE[phase];phaseLabel=`<div style="font-size:8px;color:${b.color};font-weight:600;">${phase==='period'?'🔴':phase==='pms'?'🟡':'🌸'}</div>`;}}
+      return`<div class="daily-box ${dm.isBodyCheck?'body-check':''}"><div class="daily-day">${dm.dayLabel}</div><div class="daily-num">Day${dm.dayNum}</div>${phaseLabel}<div class="daily-txt">${dm.text}</div></div>`;
+    }).join('');
+    return `<div class="week-block"><div class="week-head" onclick="toggleBlock(this)"><div><span class="week-num">${w.weekNum}주차</span><span class="week-theme" style="margin-left:8px;">· ${w.theme}</span></div><span class="chevron">▼</span></div><div class="week-body ${w.weekNum===1?'open':''}">${cycleBadge}<div class="mission-row"><span class="mbadge" style="background:${m1.bg};color:${m1.color};">${m1.emoji} ${m1.label}</span><span class="mission-txt">${m1.text}</span></div><div class="mission-row"><span class="mbadge" style="background:${m2.bg};color:${m2.color};">${m2.emoji} ${m2.label}</span><span class="mission-txt">${m2.text}</span></div><div class="daily-section"><div class="daily-title">데일리 미션 · Day ${(w.weekNum-1)*7+1}–${w.weekNum*7}</div><div class="daily-grid">${dailyBoxes}</div></div></div></div>`;
   }).join('');
   document.getElementById('mission-section').innerHTML=weekHtml;
 
