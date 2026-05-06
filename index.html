@@ -628,6 +628,79 @@ function pickProteinFood(db,mealType,badWords,usedNames,seafoodCountRef){const i
 function makeGeneralMealSlot(mealType,targetKcal,macroRatio){const carbG=Math.round(targetKcal*macroRatio.carb/4),proteinG=Math.round(targetKcal*macroRatio.protein/4),fatG=Math.round(targetKcal*macroRatio.fat/9);return{portions:[{food:{name:'🍱 일반식',category:'일반식',kcal:0,amount:0},grams:0,kcal:targetKcal,protein:proteinG,carb:carbG,fat:fatG,role:'일반식',isGeneralMeal:true}],totalKcal:targetKcal,isGeneralMeal:true};}
 function calcPortion(food,targetKcal){if(!food||food.kcal===0)return null;let g=Math.round((targetKcal/food.kcal)*food.amount/10)*10;g=Math.max(20,Math.min(g,300));const r=g/food.amount;return{food,grams:g,kcal:Math.round(food.kcal*r),protein:Math.round(food.protein*r*10)/10,carb:Math.round(food.carb*r*10)/10,fat:Math.round(food.fat*r*10)/10};}
 
+// ── 라라어트 식단 조합 DB (실제 코칭 패턴 기반) ──────────
+// 우선 순위: MEAL_COMBOS 매칭 → 없으면 기존 랜덤 fallback
+const MEAL_COMBOS = {
+  아침: [
+    { name:'오트밀+계란 기본', protein:'계란(전란)', carb:'오트밀', veggie:'브로콜리',
+      tags:['기본','감량','근성장'], excludeGoals:[] },
+    { name:'오트밀+계란+베리', protein:'계란(전란)', carb:'오트밀', veggie:'방울토마토',
+      tags:['기본','감량'], extraCarb:'블루베리', excludeGoals:[] },
+    { name:'오트밀+난백', protein:'난백', carb:'오트밀', veggie:'브로콜리',
+      tags:['고단백','바프'], excludeGoals:['gain'] },
+    { name:'바나나+계란+두유', protein:'계란(전란)', carb:'바나나', veggie:null,
+      tags:['간편','외식많음'], excludeGoals:[] },
+    { name:'오트밀+두부', protein:'두부', carb:'오트밀', veggie:'방울토마토',
+      tags:['식물성'], excludeGoals:[] },
+  ],
+  점심: [
+    { name:'닭가슴살+현미 기본', protein:'닭가슴살', carb:'현미밥', veggie:'아스파라거스',
+      veggie2:'브로콜리', tags:['기본'], excludeGoals:[] },
+    { name:'닭가슴살+고구마', protein:'닭가슴살', carb:'고구마', veggie:'양배추',
+      veggie2:'방울토마토', tags:['기본','감량'], excludeGoals:[] },
+    { name:'우둔살+현미', protein:'소고기우둔살', carb:'현미밥', veggie:'아스파라거스',
+      veggie2:'브로콜리', tags:['다양성'], excludeGoals:[] },
+    { name:'틸라피아+현미', protein:'틸라피아', carb:'현미밥', veggie:'브로콜리',
+      veggie2:'시금치', tags:['저지방','감량'], excludeGoals:[] },
+    { name:'닭안심+고구마', protein:'닭안심', carb:'고구마', veggie:'아스파라거스',
+      veggie2:'양배추', tags:['다양성'], excludeGoals:[] },
+    { name:'두부+현미', protein:'두부', carb:'현미밥', veggie:'시금치',
+      veggie2:'브로콜리', tags:['식물성'], excludeGoals:[] },
+  ],
+  저녁: [
+    { name:'닭안심+고구마', protein:'닭안심', carb:'고구마', veggie:'아스파라거스',
+      veggie2:'브로콜리', tags:['기본','감량'], excludeGoals:['gain'] },
+    { name:'닭가슴살+단호박', protein:'닭가슴살', carb:'고구마', veggie:'브로콜리',
+      veggie2:'양배추', tags:['감량'], excludeGoals:['gain'] },
+    { name:'우둔살+채소위주', protein:'소고기우둔살', carb:'현미밥', veggie:'아스파라거스',
+      veggie2:'브로콜리', tags:['근성장'], excludeGoals:['conservative_cut'] },
+    { name:'틸라피아+단호박', protein:'틸라피아', carb:'고구마', veggie:'아스파라거스',
+      veggie2:'시금치', tags:['저칼로리'], excludeGoals:['gain'] },
+    { name:'닭가슴살+현미소량', protein:'닭가슴살', carb:'현미밥', veggie:'아스파라거스',
+      veggie2:'브로콜리', tags:['근성장','gain'], excludeGoals:[] },
+  ],
+  간식: [
+    { name:'요거트+블루베리', protein:'그릭요거트', carb:'블루베리',
+      tags:['기본'], excludeGoals:[] },
+    { name:'계란+오이', protein:'계란(전란)', carb:null,
+      tags:['저탄수','감량'], excludeGoals:['gain'] },
+    { name:'단호박+요거트', protein:'그릭요거트', carb:'블루베리',
+      tags:['단맛대체'], excludeGoals:[] },
+  ],
+};
+
+// 회원 프로필에 맞는 조합 선택
+function pickCombo(mealType, goalType, badWords, usedProteins, dayIndex) {
+  const pool = MEAL_COMBOS[mealType] || [];
+  const filtered = pool.filter(combo => {
+    if (combo.excludeGoals.includes(goalType)) return false;
+    if (badWords.some(b => b && (combo.protein?.includes(b) || combo.carb?.includes(b)))) return false;
+    // 같은 단백질 3일 연속 금지
+    const recentProteins = usedProteins.slice(-2);
+    if (recentProteins.filter(p => p === combo.protein).length >= 2) return false;
+    return true;
+  });
+  if (!filtered.length) return null;
+  // dayIndex 기반 고정 선택 (같은 회원은 일관성 유지)
+  return filtered[dayIndex % filtered.length];
+}
+
+// 조합에서 실제 food 객체 찾기
+function findFoodByName(name) {
+  if (!name || !FOODS_DB.length) return null;
+  return FOODS_DB.find(f => f.name && f.name.includes(name)) || null;
+}
+
 // ── 끼니별 식품 상한선 ─────────────────────
 // 끼니당 단백질 최대 150g (소화·흡수 한계 + 다이어트 적정량)
 const PROTEIN_MAX_G = 150;
@@ -669,11 +742,78 @@ function generateWeekMeal(calc,memberData){
       const structure=MEAL_STRUCTURE[mt]||MEAL_STRUCTURE['점심'];
       const proteinSlotRatio=structure[0]?.ratio??0.40,carbSlotRatio=structure[1]?.ratio??0.35;
       const portions=[];
-      // 단백질 (최대 150g 상한)
-      const proteinKcal=Math.round(mealKcal*proteinSlotRatio);
+
+      // ── MEAL_COMBOS 우선 매칭 ──────────────────
+      const combo = pickCombo(mt, calc.goalType, badWords, usedNames.size ? [...usedNames] : [], di);
+
+      if (combo) {
+        // 조합 매칭 성공 → 조합 기반으로 슬롯 채우기
+        const proteinKcal = Math.round(mealKcal * proteinSlotRatio);
+        const pFood = findFoodByName(combo.protein);
+        if (pFood) {
+          const r = proteinKcal / pFood.kcal;
+          const g = Math.min(Math.max(Math.round(r * pFood.amount / 10) * 10, 50), PROTEIN_MAX_G);
+          const sc = g / pFood.amount;
+          portions.push({food:pFood, grams:g, role:'단백질', kcal:Math.round(pFood.kcal*sc), protein:Math.round(pFood.protein*sc*10)/10, carb:Math.round(pFood.carb*sc*10)/10, fat:Math.round(pFood.fat*sc*10)/10});
+          usedNames.add(pFood.name);
+        } else {
+          // food DB에 없으면 랜덤 fallback
+          const pFallback = pickProteinFood(FOODS_DB, mt, badWords, usedNames, seafoodCountRef);
+          if (pFallback) {
+            const r = proteinKcal / pFallback.kcal;
+            const g = Math.min(Math.max(Math.round(r * pFallback.amount / 10) * 10, 50), PROTEIN_MAX_G);
+            const sc = g / pFallback.amount;
+            portions.push({food:pFallback, grams:g, role:'단백질', kcal:Math.round(pFallback.kcal*sc), protein:Math.round(pFallback.protein*sc*10)/10, carb:Math.round(pFallback.carb*sc*10)/10, fat:Math.round(pFallback.fat*sc*10)/10});
+          }
+        }
+
+        // 탄수화물
+        const carbKcal = Math.round(mealKcal * carbSlotRatio);
+        const carbName = combo.carb || pickCarbFromPool(mt, usedCarbsByMeal);
+        const cFood = combo.carb ? findFoodByName(combo.carb) : FOODS_DB.find(f => f.name?.includes(carbName) && f.meals?.includes(mt));
+        if (cFood) {
+          const r = carbKcal / cFood.kcal;
+          const maxG = getCarbMaxG(cFood.name);
+          const g = Math.min(Math.max(Math.round(r * cFood.amount / 10) * 10, 30), maxG);
+          const sc = g / cFood.amount;
+          portions.push({food:cFood, grams:g, role:'탄수화물', kcal:Math.round(cFood.kcal*sc), protein:Math.round(cFood.protein*sc*10)/10, carb:Math.round(cFood.carb*sc*10)/10, fat:Math.round(cFood.fat*sc*10)/10});
+        } else if (carbName) {
+          portions.push({food:{name:carbName}, grams:130, role:'탄수화물', kcal:carbKcal, protein:Math.round(carbKcal*0.07/4), carb:Math.round(carbKcal*0.85/4), fat:Math.round(carbKcal*0.01/9)});
+        }
+        // 탄수 사용 기록
+        if (combo.carb) usedCarbsByMeal[mt] = [...(usedCarbsByMeal[mt]||[]), combo.carb];
+
+        // extraCarb (블루베리 등 추가 탄수)
+        if (combo.extraCarb) {
+          const eFood = findFoodByName(combo.extraCarb);
+          if (eFood) {
+            const g = 100; const sc = g / eFood.amount;
+            portions.push({food:eFood, grams:g, role:'추가탄수', kcal:Math.round(eFood.kcal*sc), protein:Math.round(eFood.protein*sc*10)/10, carb:Math.round(eFood.carb*sc*10)/10, fat:Math.round(eFood.fat*sc*10)/10});
+          }
+        }
+
+        // 채소1 (조합 지정 채소 우선)
+        const v1Name = combo.veggie;
+        const v1Food = v1Name ? findFoodByName(v1Name) : pickSingleVeggie(mt, badWords, new Set());
+        if (v1Food) {
+          const g = VEGGIE_FIXED_G; const sc = g / v1Food.amount;
+          portions.push({food:v1Food, grams:g, role:'채소1', kcal:Math.round(v1Food.kcal*sc), protein:Math.round(v1Food.protein*sc*10)/10, carb:Math.round(v1Food.carb*sc*10)/10, fat:Math.round(v1Food.fat*sc*10)/10});
+        } else {
+          portions.push({food:null, grams:0, role:'채소1', kcal:0, protein:0, carb:0, fat:0, isEmpty:true});
+        }
+
+        // 채소2, 채소3: 항상 빈 슬롯 (코치 선택)
+        const veggieSlots = structure.slice(2);
+        veggieSlots.slice(1).forEach(slot => {
+          portions.push({food:null, grams:0, role:slot.role, kcal:0, protein:0, carb:0, fat:0, isEmpty:true});
+        });
+
+      } else {
+        // ── 조합 매칭 실패 → 기존 랜덤 로직 fallback ──
+      const proteinKcal2=Math.round(mealKcal*proteinSlotRatio);
       const pFood=FOODS_DB.length>0?pickProteinFood(FOODS_DB,mt,badWords,usedNames,seafoodCountRef):null;
-      if(pFood){const r=proteinKcal/pFood.kcal;const g=Math.min(Math.max(Math.round(r*pFood.amount/10)*10,50),PROTEIN_MAX_G);const sc=g/pFood.amount;portions.push({food:pFood,grams:g,role:'단백질',kcal:Math.round(pFood.kcal*sc),protein:Math.round(pFood.protein*sc*10)/10,carb:Math.round(pFood.carb*sc*10)/10,fat:Math.round(pFood.fat*sc*10)/10});}
-      else{const pName=PRIORITY_PROTEINS[di%PRIORITY_PROTEINS.length]||'닭가슴살';portions.push({food:{name:pName},grams:100,role:'단백질',kcal:proteinKcal,protein:Math.round(proteinKcal*0.85/4),carb:2,fat:Math.round(proteinKcal*0.05/9)});}
+      if(pFood){const r=proteinKcal2/pFood.kcal;const g=Math.min(Math.max(Math.round(r*pFood.amount/10)*10,50),PROTEIN_MAX_G);const sc=g/pFood.amount;portions.push({food:pFood,grams:g,role:'단백질',kcal:Math.round(pFood.kcal*sc),protein:Math.round(pFood.protein*sc*10)/10,carb:Math.round(pFood.carb*sc*10)/10,fat:Math.round(pFood.fat*sc*10)/10});}
+      else{const pName=PRIORITY_PROTEINS[di%PRIORITY_PROTEINS.length]||'닭가슴살';portions.push({food:{name:pName},grams:100,role:'단백질',kcal:proteinKcal2,protein:Math.round(proteinKcal2*0.85/4),carb:2,fat:Math.round(proteinKcal2*0.05/9)});}
       // 탄수화물 (식품별 최대값 적용)
       const carbKcal=Math.round(mealKcal*carbSlotRatio);
       const carbName=pickCarbFromPool(mt,usedCarbsByMeal);
@@ -692,6 +832,7 @@ function generateWeekMeal(calc,memberData){
           portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});
         }
       });
+      } // end else-fallback
       dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0)};
     }
     // 간식: 3끼 실제 칼로리 합산 후 부족분 보충 (100~350kcal 범위)
