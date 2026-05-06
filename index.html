@@ -256,6 +256,19 @@
   <div class="select-section">
     <div class="select-label">회원 선택</div>
     <select class="member-select" id="member-select"><option value="">회원을 선택해주세요</option></select>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+      <div>
+        <div class="select-label" style="margin-bottom:6px;">코칭 시작일</div>
+        <input type="date" id="coaching-start-date" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text);background:var(--cream);outline:none;" oninput="onCoachingDateChange()" />
+      </div>
+      <div>
+        <div class="select-label" style="margin-bottom:6px;">프로그램</div>
+        <select id="coaching-program-select" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text);background:var(--cream);outline:none;" onchange="onCoachingDateChange()">
+          <option value="28">4주 (28일)</option>
+          <option value="63">9주 (63일)</option>
+        </select>
+      </div>
+    </div>
     <br>
     <button class="btn-load" onclick="loadMember()">데이터 불러오기</button>
   </div>
@@ -269,10 +282,12 @@
       <div class="tab" onclick="showTab('workout',this)">28일 운동</div>
     </div>
     <div class="tab-content on" id="tab-summary">
+      <div class="card"><div class="card-title">코칭 기간</div><div id="coaching-period-section"></div></div>
       <div class="card"><div class="card-title">신체 측정</div><div class="grid4" id="body-metrics"></div></div>
       <div class="card"><div class="card-title">칼로리 계산 결과</div><div class="grid3" id="calorie-metrics"></div></div>
       <div class="card"><div class="card-title">탄단지 분배</div><div id="macro-section"></div></div>
       <div class="card"><div class="card-title">리스크 체크</div><div id="risk-section"></div></div>
+      <div id="cycle-calendar-card"></div>
     </div>
     <div class="tab-content" id="tab-mission"><div id="mission-section"></div></div>
     <div class="tab-content" id="tab-meal">
@@ -630,11 +645,129 @@ function generateWeekMeal(calc,memberData){
 // UI 렌더링
 // ──────────────────────────────────────────
 let currentMemberId='',currentData=null,currentCalc=null,currentMissions=null,currentMealPlan=null,currentWorkout=null;
+let coachingStartDate=null;
 
 function showTab(id,el){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById('tab-'+id).classList.add('on');el.classList.add('on');}
 
+function onCoachingDateChange(){
+  const v=document.getElementById('coaching-start-date').value;
+  coachingStartDate=v?new Date(v):null;
+  if(currentData&&currentCalc) renderSummary(currentData,currentCalc);
+  if(currentMissions) renderMissions(currentMissions);
+}
+
+function fmtDate(d){if(!d)return'-';return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function dateStr(d){return d?d.toISOString().slice(0,10):'';}
+
+// ── 생리 사이클 계산 ──────────────────────────
+function calcCycles(d, startDate, totalDays) {
+  if (!d.마지막생리시작일 || d.성별 !== '여성') return null;
+  const cycleLen = parseInt(d.생리주기일수)||28;
+  const periodLen = parseInt(d.생리기간일수)||5;
+  const pmsLen = 6; // 생리 6일 전부터 PMS
+  const last = new Date(d.마지막생리시작일);
+  const end = addDays(startDate, totalDays);
+  const results = [];
+  // 시작일 이전까지 사이클을 진행시켜 코칭 기간 내 사이클 파악
+  let cur = new Date(last);
+  while (cur < end) {
+    const periodStart = new Date(cur);
+    const periodEnd = addDays(cur, periodLen-1);
+    const pmsStart = addDays(cur, -pmsLen);
+    const pmsEnd = addDays(cur, -1);
+    const ovulDay = addDays(cur, cycleLen-14);
+    const ovulStart = addDays(ovulDay, -2);
+    const ovulEnd = addDays(ovulDay, 2);
+    // 코칭 기간과 겹치는 사이클만 포함
+    if (periodEnd >= startDate || pmsEnd >= startDate || ovulEnd >= startDate) {
+      results.push({ periodStart, periodEnd, pmsStart, pmsEnd, ovulStart, ovulEnd, ovulDay });
+    }
+    cur = addDays(cur, cycleLen);
+  }
+  return results;
+}
+
+function getCyclePhase(date, cycles) {
+  if (!cycles) return null;
+  for (const c of cycles) {
+    if (date >= c.periodStart && date <= c.periodEnd) return 'period';
+    if (date >= c.pmsStart && date <= c.pmsEnd) return 'pms';
+    if (date >= c.ovulStart && date <= c.ovulEnd) return 'ovul';
+  }
+  return null;
+}
+
+const CYCLE_BADGE = {
+  period: { label:'🔴 생리기간', bg:'#FCEBEB', color:'#A32D2D' },
+  pms:    { label:'🟡 PMS기간',  bg:'#FEF9E7', color:'#854F0B' },
+  ovul:   { label:'🌸 배란기',   bg:'#FDF0F7', color:'#993556' },
+};
+
+// ── 코칭 기간 렌더링 ─────────────────────────
+function renderCoachingPeriod(d, startDate) {
+  const programDays = parseInt(document.getElementById('coaching-program-select')?.value||'28');
+  const programLabel = programDays===28?'4주 (28일)':'9주 (63일)';
+  if (!startDate) {
+    document.getElementById('coaching-period-section').innerHTML =
+      '<div style="font-size:13px;color:var(--text3);">위에서 코칭 시작일을 선택해주세요.</div>';
+    return;
+  }
+  const endDate = addDays(startDate, programDays-1);
+  let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;">'
+    + `<div class="metric"><div class="metric-label">시작일</div><div class="metric-val" style="font-size:16px;">${fmtDate(startDate)}</div></div>`
+    + `<div class="metric"><div class="metric-label">종료일</div><div class="metric-val" style="font-size:16px;">${fmtDate(endDate)}</div></div>`
+    + `<div class="metric" style="border:1px solid var(--pink)"><div class="metric-label">프로그램</div><div class="metric-val highlight" style="font-size:15px;">${programLabel}</div></div>`
+    + '</div>';
+  document.getElementById('coaching-period-section').innerHTML = html;
+}
+
+// ── 생리 캘린더 렌더링 ───────────────────────
+function renderCycleCalendar(d, startDate) {
+  const card = document.getElementById('cycle-calendar-card');
+  if (d.성별 !== '여성' || !d.마지막생리시작일 || !startDate) { card.innerHTML=''; return; }
+  const programDays = parseInt(document.getElementById('coaching-program-select')?.value||'28');
+  const cycles = calcCycles(d, startDate, programDays);
+  if (!cycles||!cycles.length) { card.innerHTML=''; return; }
+
+  // 28일 달력 그리드
+  const days=['월','화','수','목','금','토','일'];
+  let gridHtml = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:10px;">'
+    + days.map(dl=>`<div style="text-align:center;font-size:10px;color:var(--text3);padding:4px 0;">${dl}</div>`).join('');
+
+  // 시작 요일 맞추기 (월=0)
+  const startDow = (startDate.getDay()+6)%7;
+  for(let i=0;i<startDow;i++) gridHtml += '<div></div>';
+
+  for(let i=0;i<programDays;i++){
+    const dt = addDays(startDate, i);
+    const phase = getCyclePhase(dt, cycles);
+    const b = phase ? CYCLE_BADGE[phase] : null;
+    const bg = b ? b.bg : 'var(--cream)';
+    const col = b ? b.color : 'var(--text3)';
+    const border = b ? `1px solid ${b.color}40` : '1px solid var(--border)';
+    gridHtml += `<div style="background:${bg};border:${border};border-radius:4px;padding:4px 2px;text-align:center;">
+      <div style="font-size:10px;color:${col};font-weight:${b?'600':'400'};">${i+1}</div>
+      <div style="font-size:8px;color:${col};">${dt.getMonth()+1}/${dt.getDate()}</div>
+    </div>`;
+  }
+  gridHtml += '</div>';
+
+  // 범례
+  const legend = Object.values(CYCLE_BADGE).map(b=>`<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:${b.bg};color:${b.color};">${b.label}</span>`).join(' ');
+
+  card.innerHTML = `<div class="card"><div class="card-title">생리 캘린더 (28일)</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">
+      마지막 생리 시작일: ${d.마지막생리시작일} · 주기 ${parseInt(d.생리주기일수)||28}일 · 생리기간 ${parseInt(d.생리기간일수)||5}일
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">${legend}</div>
+    ${gridHtml}
+  </div>`;
+}
+
 function renderSummary(d,calc){
   document.getElementById('member-bar').innerHTML=`<div class="avatar">${(d.이름||'??').slice(0,2)}</div><div><div class="member-name">${d.이름||'-'}</div><div class="member-sub">${d.나이||'-'}세 · ${d.성별||'-'} · ${d.프로그램||'온라인 코칭'}</div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;"><span class="tag" style="background:var(--pink-light);color:var(--pink-dark)">${d.목표||'-'}</span><span class="tag" style="background:var(--blue-bg);color:var(--blue)">${calc.userType}</span></div></div>`;
+  renderCoachingPeriod(d, coachingStartDate);
   document.getElementById('body-metrics').innerHTML=[{label:'키',val:d.키,unit:'cm'},{label:'체중',val:d.현재체중,unit:'kg'},{label:'체지방률',val:d.체지방률,unit:'%'},{label:'골격근량',val:d.골격근량,unit:'kg'}].map(m=>`<div class="metric"><div class="metric-label">${m.label}</div><div class="metric-val">${m.val||'-'}<span>${m.unit}</span></div></div>`).join('');
   document.getElementById('calorie-metrics').innerHTML=`<div class="metric"><div class="metric-label">기초대사량 (BMR)</div><div class="metric-val">${calc.bmr.toLocaleString()}<span>kcal</span></div></div><div class="metric"><div class="metric-label">활동대사량 (TDEE)</div><div class="metric-val">${calc.tdee.toLocaleString()}<span>kcal</span></div></div><div class="metric" style="border:1px solid var(--pink);"><div class="metric-label">목표 섭취 칼로리</div><div class="metric-val highlight">${calc.targetCal.toLocaleString()}<span>kcal</span></div></div>`;
   document.getElementById('macro-section').innerHTML=`<div class="macro-bar"><div class="bar-p" style="width:${calc.proteinPct}%"></div><div class="bar-c" style="width:${calc.carbPct}%"></div><div class="bar-f" style="width:${calc.fatPct}%"></div></div><div class="macro-legend"><span><span class="dot" style="background:var(--pink)"></span>단백질 ${calc.protein}g (${calc.proteinPct}%)</span><span><span class="dot" style="background:#F4C0D1"></span>탄수화물 ${calc.carb}g (${calc.carbPct}%)</span><span><span class="dot" style="background:#FAC775"></span>지방 ${calc.fat}g (${calc.fatPct}%)</span></div><div style="margin-top:10px;font-size:12px;color:var(--text3);">활동계수 ${calc.totalFactor} · ${calc.safetyFlag?'⚠️ Safety Flag ON':'Safety Flag OFF'} · ${calc.userType}</div>`;
@@ -642,6 +775,7 @@ function renderSummary(d,calc){
   const recBadge=calc.recoveryRisk>=4?'badge-red':calc.recoveryRisk>=2?'badge-amber':'badge-green';
   const horBadge=calc.hormoneRisk>=3?'badge-red':calc.hormoneRisk>=2?'badge-amber':'badge-green';
   document.getElementById('risk-section').innerHTML=`<div class="risk-row"><span class="badge ${dietBadge}">식습관 위험 ${calc.dietRisk}/5</span><span class="badge ${recBadge}">회복 위험 ${calc.recoveryRisk}/5</span><span class="badge ${horBadge}">호르몬 위험 ${calc.hormoneRisk}/5</span></div>`;
+  renderCycleCalendar(d, coachingStartDate);
 }
 
 // ──────────────────────────────────────────
@@ -667,12 +801,52 @@ function renderMissions(missions) {
 
   const weekHtml = missions.weeks.map(w => {
     const m1 = w.mission1, m2 = w.mission2;
-    const dailyBoxes = w.dailyMissions.map(dm => `
-      <div class="daily-box ${dm.isBodyCheck ? 'body-check' : ''}">
+
+    // 주차별 생리 사이클 뱃지
+    let cycleBadgeHtml = '';
+    if (coachingStartDate && currentData?.성별 === '여성' && currentData?.마지막생리시작일) {
+      const programDays = parseInt(document.getElementById('coaching-program-select')?.value||'28');
+      const cycles = calcCycles(currentData, coachingStartDate, programDays);
+      if (cycles) {
+        const weekStart = addDays(coachingStartDate, (w.weekNum-1)*7);
+        const phaseSet = new Set();
+        for (let i=0; i<7; i++) {
+          const phase = getCyclePhase(addDays(weekStart, i), cycles);
+          if (phase) phaseSet.add(phase);
+        }
+        if (phaseSet.size > 0) {
+          cycleBadgeHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
+            + [...phaseSet].map(p => {
+                const b = CYCLE_BADGE[p];
+                return `<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:${b.bg};color:${b.color};">${b.label}</span>`;
+              }).join('')
+            + '</div>';
+        }
+      }
+    }
+
+    const dailyBoxes = w.dailyMissions.map(dm => {
+      // 각 데일리 박스에 생리 페이즈 표시
+      let phaseStyle = '';
+      let phaseLabel = '';
+      if (coachingStartDate && currentData?.성별 === '여성' && currentData?.마지막생리시작일) {
+        const programDays = parseInt(document.getElementById('coaching-program-select')?.value||'28');
+        const cycles = calcCycles(currentData, coachingStartDate, programDays);
+        const dayDate = addDays(coachingStartDate, dm.dayNum-1);
+        const phase = getCyclePhase(dayDate, cycles);
+        if (phase) {
+          const b = CYCLE_BADGE[phase];
+          phaseStyle = `border-color:${b.color}50;`;
+          phaseLabel = `<div style="font-size:8px;color:${b.color};font-weight:600;">${phase==='period'?'🔴':phase==='pms'?'🟡':'🌸'}</div>`;
+        }
+      }
+      return `<div class="daily-box ${dm.isBodyCheck ? 'body-check' : ''}" style="${phaseStyle}">
         <div class="daily-day">${dm.dayLabel}</div>
         <div class="daily-num">Day${dm.dayNum}</div>
+        ${phaseLabel}
         <div class="daily-txt">${dm.text}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     return `
     <div class="week-block">
@@ -681,6 +855,7 @@ function renderMissions(missions) {
         <span class="week-theme">${w.theme}</span>
       </div>
       <div class="week-body">
+        ${cycleBadgeHtml}
         <div class="mission-row">
           <span class="mbadge" style="background:${m1.bg};color:${m1.color};">${m1.emoji} ${m1.label}</span>
           <span class="mission-txt">${m1.text}</span>
@@ -965,6 +1140,7 @@ async function saveToNotion(){
   const btn=document.querySelector('.btn-save'),msg=document.getElementById('save-msg');
   btn.disabled=true;btn.textContent='저장 중...';msg.textContent='';
   try{
+    const programDaysSave = parseInt(document.getElementById('coaching-program-select')?.value||'28');
     const payload = {
       memberId: currentMemberId,
       result: {
@@ -972,7 +1148,11 @@ async function saveToNotion(){
         calc: currentCalc,
         missions: buildMissionsPayload(currentMissions),
         mealPlan: buildMealPayload(currentMealPlan),
-        workout: currentWorkout
+        workout: {
+          ...currentWorkout,
+          coachingStartDate: coachingStartDate ? coachingStartDate.toISOString().slice(0,10) : null,
+          programDays: programDaysSave,
+        }
       }
     };
     const res = await fetch('/api/save-coaching', {
