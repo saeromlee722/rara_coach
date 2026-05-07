@@ -633,19 +633,23 @@ function calcPortion(food,targetKcal){if(!food||food.kcal===0)return null;let g=
 const MEAL_COMBOS = {
   아침: [
     { name:'오트밀+계란 기본', protein:'계란(전란)', carb:'오트밀', veggie:'브로콜리',
-      tags:['기본','감량','근성장'], excludeGoals:[] },
+      tags:['기본','감량','근성장'], excludeGoals:[],
+      recipeUrl:'https://www.notion.so/359ad4bdca228144ad61dc6097c8003c' },
     { name:'오트밀+계란+베리', protein:'계란(전란)', carb:'오트밀', veggie:'방울토마토',
       tags:['기본','감량'], extraCarb:'블루베리', excludeGoals:[] },
     { name:'오트밀+난백', protein:'난백', carb:'오트밀', veggie:'브로콜리',
-      tags:['고단백','바프'], excludeGoals:['gain'] },
+      tags:['고단백','바프'], excludeGoals:['gain'],
+      recipeUrl:'https://www.notion.so/359ad4bdca22810c9927fbd482cc2609' },
     { name:'바나나+계란+두유', protein:'계란(전란)', carb:'바나나', veggie:null,
-      tags:['간편','외식많음'], excludeGoals:[] },
+      tags:['간편','외식많음'], excludeGoals:[],
+      recipeUrl:'https://www.notion.so/359ad4bdca2281d7890fe6762d0cb87b' },
     { name:'오트밀+두부', protein:'두부', carb:'오트밀', veggie:'방울토마토',
       tags:['식물성'], excludeGoals:[] },
   ],
   점심: [
     { name:'닭가슴살+현미 기본', protein:'닭가슴살', carb:'현미밥', veggie:'아스파라거스',
-      veggie2:'브로콜리', tags:['기본'], excludeGoals:[] },
+      veggie2:'브로콜리', tags:['기본'], excludeGoals:[],
+      recipeUrl:'https://www.notion.so/359ad4bdca2281fb9469f9de48884eb8' },
     { name:'닭가슴살+고구마', protein:'닭가슴살', carb:'고구마', veggie:'양배추',
       veggie2:'방울토마토', tags:['기본','감량'], excludeGoals:[] },
     { name:'우둔살+현미', protein:'소고기우둔살', carb:'현미밥', veggie:'아스파라거스',
@@ -659,7 +663,8 @@ const MEAL_COMBOS = {
   ],
   저녁: [
     { name:'닭안심+고구마', protein:'닭안심', carb:'고구마', veggie:'아스파라거스',
-      veggie2:'브로콜리', tags:['기본','감량'], excludeGoals:['gain'] },
+      veggie2:'브로콜리', tags:['기본','감량'], excludeGoals:['gain'],
+      recipeUrl:'https://www.notion.so/359ad4bdca22817b9142dbcf7509e3d6' },
     { name:'닭가슴살+단호박', protein:'닭가슴살', carb:'고구마', veggie:'브로콜리',
       veggie2:'양배추', tags:['감량'], excludeGoals:['gain'] },
     { name:'우둔살+채소위주', protein:'소고기우둔살', carb:'현미밥', veggie:'아스파라거스',
@@ -671,7 +676,8 @@ const MEAL_COMBOS = {
   ],
   간식: [
     { name:'요거트+블루베리', protein:'그릭요거트', carb:'블루베리',
-      tags:['기본'], excludeGoals:[] },
+      tags:['기본'], excludeGoals:[],
+      recipeUrl:'https://www.notion.so/359ad4bdca22813ab93bf7538820f2f6' },
     { name:'계란+오이', protein:'계란(전란)', carb:null,
       tags:['저탄수','감량'], excludeGoals:['gain'] },
     { name:'단호박+요거트', protein:'그릭요거트', carb:'블루베리',
@@ -914,7 +920,7 @@ function generateWeekMeal(calc,memberData){
         }
       });
       } // end else-fallback
-      dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0)};
+      dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0), recipeUrl: combo?.recipeUrl || null};
     }
     // 간식: 3끼 실제 칼로리 합산 후 부족분 보충 (100~350kcal 범위)
     const actual3MealKcal=mainMealTypes.reduce((s,mt)=>s+(dayMeals[mt]?.totalKcal||0),0);
@@ -1334,7 +1340,10 @@ function renderMeal(mealPlan){
         meal.portions.forEach((p,pi)=>{
           if(p.isEmpty){html+=`<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:#F8F8F8;padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px dashed #D0C8C0;color:#B0A090;">+ 재료 추가</div>`;return;}
           const bg=catColor[p.food?.category]||'#F5F5F5';
-          html+=`<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:${bg};padding:5px 10px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);"><span style="font-weight:500;color:var(--text);">${p.food.name}</span><span style="color:var(--text3);margin-left:4px;">${p.grams}${p.food.unit||'g'}</span><span style="color:var(--pink);margin-left:4px;">${p.kcal}kcal</span></div>`;
+          const recipeBtn = (pi===0 && currentMealPlan.weekPlan[di].meals[mt].recipeUrl)
+              ? `<a href="${currentMealPlan.weekPlan[di].meals[mt].recipeUrl}" target="_blank" onclick="event.stopPropagation()" style="margin-left:5px;font-size:10px;color:var(--pink);text-decoration:none;background:var(--pink-light);padding:2px 6px;border-radius:8px;">📖 레시피</a>`
+              : '';
+            html+=`<div class="food-chip" onclick="openSwap(${di},'${mt}',${pi})" style="background:${bg};padding:5px 10px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);display:inline-flex;align-items:center;"><span style="font-weight:500;color:var(--text);">${p.food.name}</span><span style="color:var(--text3);margin-left:4px;">${p.grams}${p.food.unit||'g'}</span><span style="color:var(--pink);margin-left:4px;">${p.kcal}kcal</span></div>${recipeBtn}`;
         });
         html+=`</div>`;
       }
