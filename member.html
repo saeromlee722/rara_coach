@@ -186,6 +186,56 @@ const CARB_MAX_G_DEFAULT=150;
 const VEGGIE_FIXED_G=100;
 function getCarbMaxG(name){for(const[k,v]of Object.entries(CARB_MAX_G_MAP)){if((name||'').includes(k))return v;}return CARB_MAX_G_DEFAULT;}
 
+// ── 라라어트 식단 조합 DB ────────────────────────────────
+const MEAL_COMBOS={아침:[
+  {name:'오트밀 계란죽',protein:'계란(전란)',carb:'오트밀',veggie:null,tags:['기본','간편'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca228165a9c0dab068a970c3'},
+  {name:'오트밀+계란 기본',protein:'계란(전란)',carb:'오트밀',veggie:'브로콜리',tags:['기본','감량'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281499736e9e7fc2786e8'},
+  {name:'오트밀+난백',protein:'난백',carb:'오트밀',veggie:'브로콜리',tags:['고단백','바프'],excludeGoals:['gain'],recipeUrl:'https://www.notion.so/359ad4bdca22815db803d25326b29afc'},
+  {name:'시금치 계란 스크램블',protein:'계란(전란)',carb:null,veggie:'시금치',tags:['저탄수','간편'],excludeGoals:['gain'],recipeUrl:'https://www.notion.so/359ad4bdca2281eaab48ecb9af1c89f7'},
+  {name:'토마토 계란 볶음',protein:'계란(전란)',carb:null,veggie:'방울토마토',tags:['간편','저탄수'],excludeGoals:['gain'],recipeUrl:'https://www.notion.so/359ad4bdca2281de9888f0a3f2dd9db5'},
+  {name:'두부 계란 부침',protein:'두부',carb:null,veggie:'방울토마토',tags:['식물성','저탄수'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca22819d8c1ddb712da30d1c'},
+  {name:'바나나+계란+두유',protein:'계란(전란)',carb:'바나나',veggie:null,tags:['간편','외식많음'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281afad0add0a26fb0f9e'},
+  {name:'고구마 닭가슴살 요거트 플레이트',protein:'닭가슴살',carb:'고구마',veggie:null,tags:['간편','감량'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281338c2afff55efb80d0'},
+],점심:[
+  {name:'닭가슴살 현미밥 아스파라거스 도시락',protein:'닭가슴살',carb:'현미밥',veggie:'아스파라거스',tags:['기본','도시락'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281089a7bc9ca56218093'},
+  {name:'파인애플 닭가슴살 샐러드',protein:'닭가슴살',carb:'고구마',veggie:'방울토마토',tags:['감량','샐러드'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281318b33c5124e04e283'},
+  {name:'오이 닭가슴살 냉채',protein:'닭가슴살',carb:'현미밥',veggie:'오이',tags:['감량'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281c4ac3de10f101665f1'},
+  {name:'숙주 닭가슴살 볶음',protein:'닭가슴살',carb:'현미밥',veggie:'방울토마토',tags:['기본'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281d99c9fe83ec684d017'},
+  {name:'전자레인지 계란찜 닭가슴살 컵',protein:'닭가슴살',carb:'고구마',veggie:'브로콜리',tags:['간편','도시락'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281598689f69b921047ce'},
+  {name:'닭안심 파프리카 볶음',protein:'닭안심',carb:'현미밥',veggie:'파프리카',tags:['기본'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281b1b824d968afd8315a'},
+  {name:'우둔살 채소 덮밥',protein:'소고기우둔살',carb:'현미밥',veggie:'아스파라거스',tags:['근성장'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca228171bd09cbfcd0e5d054'},
+  {name:'틸라피아 브로콜리 플레이트',protein:'틸라피아',carb:'현미밥',veggie:'브로콜리',tags:['저지방','감량'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281bfb3eccf56bd0d913d'},
+  {name:'양배추 참치 계란전',protein:'계란(전란)',carb:'현미밥',veggie:'양배추',tags:['간편','다양성'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca228117b66afbb2c0f7da58'},
+  {name:'두부 참치 비빔볼',protein:'두부',carb:'현미밥',veggie:'방울토마토',tags:['식물성'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281fe9718e157b176df09'},
+  {name:'외식대체 샤브샤브',protein:'닭가슴살',carb:'현미밥',veggie:'양배추',tags:['외식대체'],excludeGoals:[],isGeneralMeal:true,recipeUrl:'https://www.notion.so/359ad4bdca228141a3ecd77a10d58da0'},
+  {name:'외식대체 구운 고기 쌈밥',protein:'소고기우둔살',carb:'현미밥',veggie:'양배추',tags:['외식대체'],excludeGoals:[],isGeneralMeal:true,recipeUrl:'https://www.notion.so/359ad4bdca2281dc9db2d2adf1d5b4a3'},
+  {name:'외식대체 포케 조절식',protein:'연어',carb:'현미밥',veggie:'방울토마토',tags:['외식대체'],excludeGoals:[],isGeneralMeal:true,recipeUrl:'https://www.notion.so/359ad4bdca22815a85eef1b9dfe9c1ad'},
+  {name:'외식대체 쌀국수 조절식',protein:'닭가슴살',carb:'현미밥',veggie:'방울토마토',tags:['외식대체'],excludeGoals:[],isGeneralMeal:true,recipeUrl:'https://www.notion.so/359ad4bdca228154bdaddac6b670a871'},
+  {name:'외식대체 회덮밥 조절식',protein:'연어',carb:'현미밥',veggie:'오이',tags:['외식대체'],excludeGoals:[],isGeneralMeal:true,recipeUrl:'https://www.notion.so/359ad4bdca2281db8242c152da9307c8'},
+  {name:'외식대체 순두부찌개 정식',protein:'두부',carb:'현미밥',veggie:'방울토마토',tags:['외식대체'],excludeGoals:[],isGeneralMeal:true,recipeUrl:'https://www.notion.so/359ad4bdca2281d49e7dc48d7c28fd94'},
+],저녁:[
+  {name:'닭안심 고구마',protein:'닭안심',carb:'고구마',veggie:'아스파라거스',tags:['기본','감량'],excludeGoals:['gain'],recipeUrl:'https://www.notion.so/359ad4bdca2281dda555e356b07c6de9'},
+  {name:'닭안심 파프리카 볶음 저녁',protein:'닭안심',carb:'고구마',veggie:'파프리카',tags:['감량'],excludeGoals:['gain'],recipeUrl:'https://www.notion.so/359ad4bdca2281b1b824d968afd8315a'},
+  {name:'틸라피아 브로콜리 저녁',protein:'틸라피아',carb:'고구마',veggie:'브로콜리',tags:['저칼로리','저탄수'],excludeGoals:['gain'],recipeUrl:'https://www.notion.so/359ad4bdca2281bfb3eccf56bd0d913d'},
+  {name:'연어 아보카도 샐러드',protein:'연어',carb:null,veggie:'방울토마토',tags:['저탄수','다양성'],excludeGoals:['gain'],recipeUrl:'https://www.notion.so/359ad4bdca2281a49052dc879eb1d4a5'},
+  {name:'우둔살 채소 저녁',protein:'소고기우둔살',carb:'현미밥',veggie:'아스파라거스',tags:['근성장'],excludeGoals:['conservative_cut'],recipeUrl:'https://www.notion.so/359ad4bdca228171bd09cbfcd0e5d054'},
+  {name:'폭식 다음날 미역국 세트',protein:'닭가슴살',carb:null,veggie:'시금치',tags:['리셋','붓기'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281feacc3e5adbe79e15f'},
+],간식:[
+  {name:'그릭요거트 블루베리 볼',protein:'그릭요거트',carb:'블루베리',veggie:null,tags:['기본','간편'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281298e2cf5fbc7a99782'},
+  {name:'요거트+블루베리',protein:'그릭요거트',carb:'블루베리',veggie:null,tags:['기본'],excludeGoals:[],recipeUrl:'https://www.notion.so/359ad4bdca2281f2b39fc3ba9b5cb32e'},
+  {name:'계란+오이',protein:'계란(전란)',carb:null,veggie:null,tags:['저탄수','감량'],excludeGoals:['gain']},
+]};
+
+const VEGGIE_PAIRING={아침:{기본:['브로콜리','방울토마토','양배추','오이'],두부:['방울토마토','시금치','브로콜리'],바나나:[]},점심:{기본:['아스파라거스','브로콜리','파프리카','양배추','시금치','방울토마토'],닭현미:['아스파라거스','브로콜리','파프리카'],틸라피아:['브로콜리','시금치','방울토마토'],두부:['시금치','브로콜리','방울토마토']},저녁:{기본:['아스파라거스','브로콜리','양배추','시금치'],저탄수:['아스파라거스','브로콜리','시금치','방울토마토']},간식:{기본:[]}};
+
+function pickVeggieForCombo(comboName,mealType){const section=VEGGIE_PAIRING[mealType];if(!section)return null;let pool=section.기본||[];if(mealType==='아침'){if(comboName?.includes('바나나'))pool=[];else if(comboName?.includes('두부'))pool=section.두부||pool;}else if(mealType==='점심'){if(comboName?.includes('틸라피아'))pool=section.틸라피아||pool;else if(comboName?.includes('두부'))pool=section.두부||pool;}else if(mealType==='저녁'){if(!comboName?.includes('현미'))pool=section.저탄수||pool;}return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;}
+
+function selectEveningCarb(dayMeals,goalType){const lunchMeal=dayMeals['점심'];const lunchHadRice=lunchMeal&&!lunchMeal.isGeneralMeal&&lunchMeal.portions?.some(p=>p.food?.name?.includes('현미밥'));const lunchWasGeneral=lunchMeal?.isGeneralMeal;if(lunchWasGeneral)return null;if(lunchHadRice)return'고구마';if(goalType==='general_cut'||goalType==='conservative_cut')return'고구마';if(goalType==='gain')return'현미밥';return'고구마';}
+
+function findFoodByNameM(name){if(!name||!FOODS_DB.length)return null;return FOODS_DB.find(f=>f.name&&f.name.includes(name))||null;}
+
+function pickComboM(mealType,goalType,badWords,usedProteins,dayIndex){const pool=MEAL_COMBOS[mealType]||[];const filtered=pool.filter(combo=>{if(combo.excludeGoals?.includes(goalType))return false;if(badWords.some(b=>b&&(combo.protein?.includes(b)||combo.carb?.includes(b))))return false;const recent=usedProteins.slice(-2);if(recent.filter(p=>p===combo.protein).length>=2)return false;return true;});if(!filtered.length)return null;return filtered[dayIndex%filtered.length];}
+
 function generateWeekMeal(calc,memberData){
   const targetCal=calc.targetCal,macroRatio=calc.macroRatio||{carb:0.40,protein:0.30,fat:0.30};
   const badWords=[...(memberData.싫어하는음식||'').split(/[,，\s]+/),...((memberData.알레르기||'')!=='없음'?(memberData.알레르기||'').split(/[,，\s]+/):[])].filter(Boolean);
@@ -203,17 +253,40 @@ function generateWeekMeal(calc,memberData){
       const structure=MEAL_STRUCTURE[mt]||MEAL_STRUCTURE['점심'];
       const proteinSlotRatio=structure[0]?.ratio??0.40,carbSlotRatio=structure[1]?.ratio??0.35;
       const portions=[];
-      const proteinKcal=Math.round(mealKcal*proteinSlotRatio);
-      const pFood=FOODS_DB.length>0?pickProteinFood(FOODS_DB,mt,badWords,usedNames,seafoodCountRef):null;
-      if(pFood){const r=proteinKcal/pFood.kcal;const g=Math.min(Math.max(Math.round(r*pFood.amount/10)*10,50),PROTEIN_MAX_G);const sc=g/pFood.amount;portions.push({food:pFood,grams:g,role:'단백질',kcal:Math.round(pFood.kcal*sc),protein:Math.round(pFood.protein*sc*10)/10,carb:Math.round(pFood.carb*sc*10)/10,fat:Math.round(pFood.fat*sc*10)/10});}
-      else{const pName=PRIORITY_PROTEINS[di%PRIORITY_PROTEINS.length]||'닭가슴살';portions.push({food:{name:pName},grams:100,role:'단백질',kcal:proteinKcal,protein:Math.round(proteinKcal*0.85/4),carb:2,fat:Math.round(proteinKcal*0.05/9)});}
-      const carbKcal=Math.round(mealKcal*carbSlotRatio);const carbName=pickCarbFromPool(mt,usedCarbsByMeal);
-      const cFood=FOODS_DB.length>0?FOODS_DB.find(f=>f.name?.includes(carbName)&&f.meals?.includes(mt)):null;
-      if(cFood){const r=carbKcal/cFood.kcal;const maxG=getCarbMaxG(cFood.name);const g=Math.min(Math.max(Math.round(r*cFood.amount/10)*10,30),maxG);const sc=g/cFood.amount;portions.push({food:cFood,grams:g,role:'탄수화물',kcal:Math.round(cFood.kcal*sc),protein:Math.round(cFood.protein*sc*10)/10,carb:Math.round(cFood.carb*sc*10)/10,fat:Math.round(cFood.fat*sc*10)/10});}
-      else{portions.push({food:{name:carbName},grams:130,role:'탄수화물',kcal:carbKcal,protein:Math.round(carbKcal*0.07/4),carb:Math.round(carbKcal*0.85/4),fat:Math.round(carbKcal*0.01/9)});}
-      const veggieSlots=structure.slice(2);const usedVeggiesDay=new Set();
-      veggieSlots.forEach((slot,si)=>{if(si===0){const vFood=pickSingleVeggie(mt,badWords,usedVeggiesDay);if(vFood){const g=VEGGIE_FIXED_G;const sc=g/vFood.amount;portions.push({food:vFood,grams:g,role:slot.role,kcal:Math.round(vFood.kcal*sc),protein:Math.round(vFood.protein*sc*10)/10,carb:Math.round(vFood.carb*sc*10)/10,fat:Math.round(vFood.fat*sc*10)/10});}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}});
-      dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0)};
+      const combo=pickComboM(mt,calc.goalType,badWords,[...usedNames],di);
+      if(combo){
+        // MEAL_COMBOS 매칭 성공
+        const proteinKcal=Math.round(mealKcal*proteinSlotRatio);
+        const pFood=findFoodByNameM(combo.protein);
+        if(pFood){const r=proteinKcal/pFood.kcal;const g=Math.min(Math.max(Math.round(r*pFood.amount/10)*10,50),PROTEIN_MAX_G);const sc=g/pFood.amount;portions.push({food:pFood,grams:g,role:'단백질',kcal:Math.round(pFood.kcal*sc),protein:Math.round(pFood.protein*sc*10)/10,carb:Math.round(pFood.carb*sc*10)/10,fat:Math.round(pFood.fat*sc*10)/10});usedNames.add(pFood.name);}
+        else{const pFallback=pickProteinFood(FOODS_DB,mt,badWords,usedNames,seafoodCountRef);if(pFallback){const r=proteinKcal/pFallback.kcal;const g=Math.min(Math.max(Math.round(r*pFallback.amount/10)*10,50),PROTEIN_MAX_G);const sc=g/pFallback.amount;portions.push({food:pFallback,grams:g,role:'단백질',kcal:Math.round(pFallback.kcal*sc),protein:Math.round(pFallback.protein*sc*10)/10,carb:Math.round(pFallback.carb*sc*10)/10,fat:Math.round(pFallback.fat*sc*10)/10});}}
+        // 탄수화물
+        const carbKcal=Math.round(mealKcal*carbSlotRatio);
+        let resolvedCarb=combo.carb;
+        if(mt==='저녁'){const ec=selectEveningCarb(dayMeals,calc.goalType);resolvedCarb=(ec===null)?null:ec;}
+        if(resolvedCarb){const cFood=findFoodByNameM(resolvedCarb)||FOODS_DB.find(f=>f.name?.includes(resolvedCarb)&&f.meals?.includes(mt));if(cFood){const r=carbKcal/cFood.kcal;const maxG=getCarbMaxG(cFood.name);const g=Math.min(Math.max(Math.round(r*cFood.amount/10)*10,30),maxG);const sc=g/cFood.amount;portions.push({food:cFood,grams:g,role:'탄수화물',kcal:Math.round(cFood.kcal*sc),protein:Math.round(cFood.protein*sc*10)/10,carb:Math.round(cFood.carb*sc*10)/10,fat:Math.round(cFood.fat*sc*10)/10});}else{portions.push({food:{name:resolvedCarb},grams:130,role:'탄수화물',kcal:carbKcal,protein:Math.round(carbKcal*0.07/4),carb:Math.round(carbKcal*0.85/4),fat:Math.round(carbKcal*0.01/9)});} usedCarbsByMeal[mt]=[...(usedCarbsByMeal[mt]||[]),resolvedCarb];}
+        // 채소1 (VEGGIE_PAIRING 기반)
+        const veggieSlots=structure.slice(2);
+        const pairedV=pickVeggieForCombo(combo.name,mt);
+        const v1Food=pairedV?findFoodByNameM(pairedV):pickSingleVeggie(mt,badWords,new Set());
+        if(v1Food){const g=VEGGIE_FIXED_G;const sc=g/v1Food.amount;portions.push({food:v1Food,grams:g,role:'채소1',kcal:Math.round(v1Food.kcal*sc),protein:Math.round(v1Food.protein*sc*10)/10,carb:Math.round(v1Food.carb*sc*10)/10,fat:Math.round(v1Food.fat*sc*10)/10});}
+        else{portions.push({food:null,grams:0,role:'채소1',kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}
+        veggieSlots.slice(1).forEach(slot=>portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true}));
+        dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0),recipeUrl:combo.recipeUrl||null};
+      } else {
+        // fallback: 기존 랜덤 로직
+        const proteinKcal=Math.round(mealKcal*proteinSlotRatio);
+        const pFood=FOODS_DB.length>0?pickProteinFood(FOODS_DB,mt,badWords,usedNames,seafoodCountRef):null;
+        if(pFood){const r=proteinKcal/pFood.kcal;const g=Math.min(Math.max(Math.round(r*pFood.amount/10)*10,50),PROTEIN_MAX_G);const sc=g/pFood.amount;portions.push({food:pFood,grams:g,role:'단백질',kcal:Math.round(pFood.kcal*sc),protein:Math.round(pFood.protein*sc*10)/10,carb:Math.round(pFood.carb*sc*10)/10,fat:Math.round(pFood.fat*sc*10)/10});}
+        else{const pName=PRIORITY_PROTEINS[di%PRIORITY_PROTEINS.length]||'닭가슴살';portions.push({food:{name:pName},grams:100,role:'단백질',kcal:proteinKcal,protein:Math.round(proteinKcal*0.85/4),carb:2,fat:Math.round(proteinKcal*0.05/9)});}
+        const carbKcal=Math.round(mealKcal*carbSlotRatio);const carbName=pickCarbFromPool(mt,usedCarbsByMeal);
+        const cFood=FOODS_DB.length>0?FOODS_DB.find(f=>f.name?.includes(carbName)&&f.meals?.includes(mt)):null;
+        if(cFood){const r=carbKcal/cFood.kcal;const maxG=getCarbMaxG(cFood.name);const g=Math.min(Math.max(Math.round(r*cFood.amount/10)*10,30),maxG);const sc=g/cFood.amount;portions.push({food:cFood,grams:g,role:'탄수화물',kcal:Math.round(cFood.kcal*sc),protein:Math.round(cFood.protein*sc*10)/10,carb:Math.round(cFood.carb*sc*10)/10,fat:Math.round(cFood.fat*sc*10)/10});}
+        else{portions.push({food:{name:carbName},grams:130,role:'탄수화물',kcal:carbKcal,protein:Math.round(carbKcal*0.07/4),carb:Math.round(carbKcal*0.85/4),fat:Math.round(carbKcal*0.01/9)});}
+        const veggieSlots=structure.slice(2);const usedVeggiesDay=new Set();
+        veggieSlots.forEach((slot,si)=>{if(si===0){const vFood=pickSingleVeggie(mt,badWords,usedVeggiesDay);if(vFood){const g=VEGGIE_FIXED_G;const sc=g/vFood.amount;portions.push({food:vFood,grams:g,role:slot.role,kcal:Math.round(vFood.kcal*sc),protein:Math.round(vFood.protein*sc*10)/10,carb:Math.round(vFood.carb*sc*10)/10,fat:Math.round(vFood.fat*sc*10)/10});}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}}else{portions.push({food:null,grams:0,role:slot.role,kcal:0,protein:0,carb:0,fat:0,isEmpty:true});}});
+        dayMeals[mt]={portions,totalKcal:portions.reduce((s,p)=>s+p.kcal,0)};
+      }
     }
     // 간식: 3끼 실제 칼로리 합산 후 부족분 보충 (100~350kcal)
     const actual3MealKcal=mainMealTypes.reduce((s,mt)=>s+(dayMeals[mt]?.totalKcal||0),0);
@@ -355,7 +428,8 @@ function renderAll(d, savedCalc, savedMissions, savedMealPlan, savedWorkout){
         const g=p.grams?` ${p.grams}${getFoodUnit(p)}`:'';
         return`<span style="background:${bg};padding:2px 7px;border-radius:10px;font-size:12px;margin-right:4px;display:inline-block;margin-bottom:3px;">${name}${g}</span>`;
       }).join('');
-      return`<div class="meal-row"><span class="meal-type">${mt}</span><span>${foodsStr}</span><span class="meal-kcal">${meal.totalKcal}kcal</span></div>`;
+      const recipeBtn=meal.recipeUrl?`<a href="${meal.recipeUrl}" target="_blank" style="font-size:10px;color:var(--pink);text-decoration:none;background:var(--pink-light);padding:2px 7px;border-radius:8px;margin-left:4px;white-space:nowrap;">📖 레시피</a>`:'';
+      return`<div class="meal-row"><span class="meal-type">${mt}</span><span style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">${foodsStr}${recipeBtn}</span><span class="meal-kcal">${meal.totalKcal}kcal</span></div>`;
     }).join('');
     return`<div class="day-block"><div class="day-head" onclick="toggleBlock(this)"><div class="day-head-left">Day ${day.dayIndex} (${day.day})</div><div style="display:flex;align-items:center;gap:10px;"><span class="day-kcal">${totalKcal}kcal</span><span style="font-size:12px;color:var(--text3);">▼</span></div></div><div class="day-meals ${di===0?'open':''}">${mealsHtml}</div></div>`;
   }).join('');
