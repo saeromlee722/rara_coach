@@ -1481,6 +1481,7 @@ function buildMealPayload(mealPlan) {
         Object.entries(day.meals).map(([mt, meal]) => [mt, {
           totalKcal: meal.totalKcal,
           isGeneralMeal: meal.isGeneralMeal || false,
+          recipeUrl: meal.recipeUrl || null,
           portions: meal.portions.map(p => ({
             role: p.role,
             grams: p.grams,
