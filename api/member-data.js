@@ -171,6 +171,4 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-}; error: err.message });
-  }
 };
